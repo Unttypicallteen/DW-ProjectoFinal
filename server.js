@@ -42,11 +42,16 @@ const { requireAuth, requireAdmin } = require("./src/middlewares/auth");
 // =====================================================
 // RUTAS
 // =====================================================
+// Públicas (login, register, forgot, reset, /)
 app.use("/", authRoutes);
+
+// Protegidas con JWT
 app.use("/catalogo", requireAuth, catalogoRoutes);
 app.use("/cita", requireAuth, citaRoutes);
 app.use("/perfil", requireAuth, perfilRoutes);
 app.use("/dashboard", requireAuth, dashboardRoutes);
+
+// Solo admin
 app.use("/admin", requireAdmin, adminRoutes);
 
 // =====================================================

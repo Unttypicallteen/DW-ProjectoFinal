@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const { requireAuth } = require("../middlewares/auth");
 
 const User = require("../models/user");
@@ -9,37 +8,31 @@ const Cita = require("../models/cita");
 const Producto = require("../models/producto");
 const upload = require("../config/multer");
 
-/* =========================
-   PERFIL PRINCIPAL
-========================= */
 router.get("/", requireAuth, async (req, res) => {
   const user = await User.findById(req.user.id);
   res.render("perfil", {
     userName: req.user.nombre,
-    user
+    user,
   });
 });
 
-/* =========================
-   INFO DEL PERFIL
-========================= */
 router.get("/info", requireAuth, async (req, res) => {
   const user = await User.findById(req.user.id);
 
   const fechaCreada = new Date(user.creado).toLocaleDateString("es-CO", {
     year: "numeric",
     month: "long",
-    day: "numeric"
+    day: "numeric",
   });
 
   const reservasActivas = await Reserva.countDocuments({
     usuario: req.user.id,
-    estado: "activa"
+    estado: "activa",
   });
 
   const citasActivas = await Cita.countDocuments({
     usuario: req.user.id,
-    estado: "activa"
+    estado: "activa",
   });
 
   res.render("perfil-info", {
@@ -47,18 +40,15 @@ router.get("/info", requireAuth, async (req, res) => {
     user,
     reservasActivas,
     citasActivas,
-    fechaCreada
+    fechaCreada,
   });
 });
 
-/* =========================
-   EDITAR PERFIL
-========================= */
 router.get("/editar", requireAuth, async (req, res) => {
   const user = await User.findById(req.user.id);
   res.render("perfil-editar", {
     userName: req.user.nombre,
-    user
+    user,
   });
 });
 
@@ -70,7 +60,7 @@ router.post("/editar", requireAuth, async (req, res) => {
       nombre,
       email,
       telefono: tel,
-      actualizado: new Date()
+      actualizado: new Date(),
     };
 
     if (pass && pass.length >= 6) {
@@ -80,33 +70,25 @@ router.post("/editar", requireAuth, async (req, res) => {
     await User.findByIdAndUpdate(req.user.id, update);
 
     return res.json({ ok: true, message: "Datos actualizados correctamente" });
-
   } catch (err) {
     console.error(err);
     return res.json({ ok: false, message: "Error actualizando datos" });
   }
 });
 
-/* =========================
-   RESERVAS Y CITAS
-========================= */
 router.get("/reservas", requireAuth, async (req, res) => {
   try {
     const tipo = req.query.tipo || "productos";
 
     const [reservas, citas] = await Promise.all([
       Reserva.find({ usuario: req.user.id }).populate("producto.id"),
-      Cita.find({ usuario: req.user.id })
+      Cita.find({ usuario: req.user.id }),
     ]);
 
     const hoy = new Date();
-    const hoySinHora = new Date(
-      hoy.getFullYear(),
-      hoy.getMonth(),
-      hoy.getDate()
-    );
+    const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
 
-    const reservasFmt = reservas.map(r => {
+    const reservasFmt = reservas.map((r) => {
       const f = new Date(r.fechaReserva);
 
       return {
@@ -117,11 +99,11 @@ router.get("/reservas", requireAuth, async (req, res) => {
         precio: r.producto?.price,
         cantidad: r.cantidad,
         fecha: f.toLocaleDateString("es-CO"),
-        estado: r.estado
+        estado: r.estado,
       };
     });
 
-    const citasFmt = citas.map(c => {
+    const citasFmt = citas.map((c) => {
       const [y, m, d] = c.dia.split("-");
       const fechaCita = new Date(y, m - 1, d);
 
@@ -137,18 +119,18 @@ router.get("/reservas", requireAuth, async (req, res) => {
             : "/img/servicios/consulta.png",
         fecha: `${c.dia} ${c.hora}`,
         estado: c.estado,
-        pasada: fechaCita < hoySinHora
+        pasada: fechaCita < hoySinHora,
       };
     });
 
     let items = [];
 
     if (tipo === "productos") {
-      items = reservasFmt.filter(i => i.estado === "activa");
+      items = reservasFmt.filter((i) => i.estado === "activa");
     } else if (tipo === "citas") {
-      items = citasFmt.filter(i => i.estado === "activa" && !i.pasada);
+      items = citasFmt.filter((i) => i.estado === "activa" && !i.pasada);
     } else if (tipo === "historial") {
-      items = [...reservasFmt, ...citasFmt].filter(i =>
+      items = [...reservasFmt, ...citasFmt].filter((i) =>
         ["vencida", "cancelada", "entregada"].includes(i.estado)
       );
     }
@@ -156,18 +138,14 @@ router.get("/reservas", requireAuth, async (req, res) => {
     res.render("reservas", {
       userName: req.user.nombre,
       items,
-      tipo
+      tipo,
     });
-
   } catch (err) {
     console.error("❌ Error cargando reservas:", err);
     res.redirect("/dashboard");
   }
 });
 
-/* =========================
-   CANCELAR RESERVA O CITA
-========================= */
 router.post("/cancelar", requireAuth, async (req, res) => {
   try {
     const { id, tipo } = req.body;
@@ -178,25 +156,23 @@ router.post("/cancelar", requireAuth, async (req, res) => {
 
     if (tipo === "productos") {
       const item = await Reserva.findById(id);
-
       if (!item) return res.json({ ok: false, message: "Reserva no encontrada." });
 
       item.estado = "cancelada";
       await item.save();
 
       await Producto.findByIdAndUpdate(item.producto.id, {
-        $inc: { stock: item.cantidad }
+        $inc: { stock: item.cantidad },
       });
 
       return res.json({
         ok: true,
-        message: "Reserva cancelada y stock actualizado."
+        message: "Reserva cancelada y stock actualizado.",
       });
     }
 
     if (tipo === "citas") {
       const item = await Cita.findById(id);
-
       if (!item) return res.json({ ok: false, message: "Cita no encontrada." });
 
       item.estado = "cancelada";
@@ -204,32 +180,27 @@ router.post("/cancelar", requireAuth, async (req, res) => {
 
       return res.json({
         ok: true,
-        message: "Cita cancelada correctamente."
+        message: "Cita cancelada correctamente.",
       });
     }
 
     return res.json({ ok: false, message: "Tipo no válido." });
-
   } catch (err) {
     console.error("❌ Error cancelando:", err);
     res.json({ ok: false, message: "Error al cancelar." });
   }
 });
 
-/* =========================
-   ACTUALIZAR AVATAR
-========================= */
 router.post("/avatar", requireAuth, upload.single("avatar"), async (req, res) => {
   try {
     if (!req.file) return res.redirect("/perfil/info");
 
     await User.findByIdAndUpdate(req.user.id, {
       avatar: "/uploads/avatars/" + req.file.filename,
-      actualizado: new Date()
+      actualizado: new Date(),
     });
 
     res.redirect("/perfil/info");
-
   } catch (err) {
     console.error("❌ Error subiendo avatar:", err);
     res.redirect("/perfil/info");

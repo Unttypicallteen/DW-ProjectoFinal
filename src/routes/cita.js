@@ -1,66 +1,46 @@
 const express = require("express");
 const router = express.Router();
-
 const { requireAuth } = require("../middlewares/auth");
 const Cita = require("../models/cita");
 
-/* ============================
-   PANTALLA PRINCIPAL /cita
-============================ */
 router.get("/", requireAuth, (req, res) => {
-  res.render("Menu", { userName: req.user.nombre }); // ← CORREGIDO
+  res.render("Menu", { userName: req.user.nombre });
 });
 
-// Horarios permitidos
-const HORAS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"];
+const HORAS = ["10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
 
-/* ============================
-   GENERAR FECHAS DISPONIBLES
-============================ */
 function generarFechasDisponibles() {
   const hoy = new Date();
-
-  // Día mínimo = hoy + 3 días
   const inicio = new Date(hoy);
   inicio.setDate(hoy.getDate() + 3);
 
-  // 7 días disponibles
   const fechas = [];
   for (let i = 0; i < 7; i++) {
     const f = new Date(inicio);
     f.setDate(inicio.getDate() + i);
     fechas.push(f.toISOString().split("T")[0]);
   }
-
   return fechas;
 }
 
-/* ============================
-   HORAS DISPONIBLES (máx 2)
-============================ */
 router.get("/horas-disponibles", requireAuth, async (req, res) => {
   try {
     const { dia, tipo } = req.query;
-
     if (!dia || !tipo) return res.json({ horas: [] });
 
     const citas = await Cita.find({ dia, tipo });
 
     const horasDisponibles = HORAS.filter(h => {
       const count = citas.filter(c => c.hora === h).length;
-      return count < 2; // Máximo 2 citas por hora
+      return count < 2;
     });
 
     res.json({ horas: horasDisponibles });
-
   } catch {
     res.json({ horas: [] });
   }
 });
 
-/* ============================
-   FORMULARIO /cita/:type
-============================ */
 router.get("/:type", requireAuth, async (req, res) => {
   const t = (req.params.type || "").toLowerCase();
 
@@ -73,7 +53,6 @@ router.get("/:type", requireAuth, async (req, res) => {
       opcionesTipo: ["Antirrábica", "Quíntuple", "Sextuple"],
       recomendaciones: "Trae el carné de vacunación.",
     },
-
     grooming: {
       h1: "Programa tu servicio de grooming",
       hero: "/img/citas/grooming-hero.png",
@@ -82,7 +61,6 @@ router.get("/:type", requireAuth, async (req, res) => {
       opcionesTipo: ["Baño", "Corte", "Baño + Corte"],
       recomendaciones: "Llega 10 minutos antes.",
     },
-
     medica: {
       h1: "Programa tu visita médica",
       hero: "/img/citas/consulta-hero.png",
@@ -95,10 +73,8 @@ router.get("/:type", requireAuth, async (req, res) => {
 
   const data = viewDataByType[t] || viewDataByType.medica;
 
-  // Fechas posibles
   const fechasDisponibles = generarFechasDisponibles();
 
-  // Cargar citas existentes en el rango
   const citasEnRango = await Cita.find({
     dia: { $in: fechasDisponibles },
     tipo: data.tipo,
@@ -106,7 +82,7 @@ router.get("/:type", requireAuth, async (req, res) => {
 
   res.render("cita", {
     ...data,
-    userName: req.user.nombre, // ← CORREGIDO
+    userName: req.user.nombre,
     especies: ["Perro", "Gato", "Otro"],
     fechasDisponibles,
     horas: HORAS,
@@ -114,9 +90,6 @@ router.get("/:type", requireAuth, async (req, res) => {
   });
 });
 
-/* ============================
-   GUARDAR CITA (límite 2 por hora)
-============================ */
 router.post("/reservar", requireAuth, async (req, res) => {
   try {
     const { tipo, especie, servicio, dia, hora } = req.body;
@@ -138,7 +111,7 @@ router.post("/reservar", requireAuth, async (req, res) => {
     }
 
     const cita = new Cita({
-      usuario: req.user.id, // ← CORREGIDO
+      usuario: req.user.id,
       tipo,
       especie,
       servicio,
@@ -155,7 +128,6 @@ router.post("/reservar", requireAuth, async (req, res) => {
       return res.json({ ok: true, message: msg });
 
     res.redirect(`/cita/${tipo}?ok=1`);
-
   } catch (err) {
     console.error("❌ Error al guardar la cita:", err);
     res.status(500).json({

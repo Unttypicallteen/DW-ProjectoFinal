@@ -1,4 +1,3 @@
-// src/routes/admin.js
 const express = require("express");
 const router = express.Router();
 const { requireAdmin } = require("../middlewares/auth");
@@ -8,114 +7,94 @@ const Reserva = require("../models/reserva");
 const Producto = require("../models/producto");
 const User = require("../models/user");
 const Venta = require("../models/venta");
-
-// ======================
-// 🔥 MULTER PARA PRODUCTOS
-// ======================
 const multer = require("multer");
 
+// ======================
+// MULTER
+// ======================
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+  destination: (req, file, cb) => cb(null, "public/uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
-
 const upload = multer({ storage });
 
-/* =======================================
-   🔥 DASHBOARD ADMIN + VENTAS FILTRADAS
-   ======================================= */
+const HORAS = ["10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
+
+/* DASHBOARD ADMIN */
 router.get("/", requireAdmin, async (req, res) => {
   try {
     let { fecha, metodo } = req.query;
-
     const baseDate = fecha ? new Date(fecha) : new Date();
 
     const inicioDia = new Date(Date.UTC(
       baseDate.getUTCFullYear(),
       baseDate.getUTCMonth(),
       baseDate.getUTCDate(),
-      0, 0, 0, 0
+      0,0,0,0
     ));
-
     const finDia = new Date(Date.UTC(
       baseDate.getUTCFullYear(),
       baseDate.getUTCMonth(),
       baseDate.getUTCDate(),
-      23, 59, 59, 999
+      23,59,59,999
     ));
-
     const inicioMes = new Date(Date.UTC(
       baseDate.getUTCFullYear(),
       baseDate.getUTCMonth(),
-      1, 0, 0, 0, 0
+      1,0,0,0,0
     ));
-
     const finMes = new Date(Date.UTC(
       baseDate.getUTCFullYear(),
       baseDate.getUTCMonth() + 1,
-      0, 23, 59, 59, 999
+      0,23,59,59,999
     ));
 
-    const filtroVentasDia = {
-      fecha: { $gte: inicioDia, $lte: finDia }
-    };
-
-    if (metodo && metodo !== "todos") {
-      filtroVentasDia.metodoPago = metodo;
-    }
+    const filtroVentasDia = { fecha: { $gte: inicioDia, $lte: finDia } };
+    if (metodo && metodo !== "todos") filtroVentasDia.metodoPago = metodo;
 
     const ventasFiltradasDia = await Venta.find(filtroVentasDia)
       .populate("usuario", "nombre")
       .sort({ fecha: -1 });
 
     const totalDiaFiltrado = ventasFiltradasDia.reduce(
-      (acc, v) => acc + (Number(v.total) || 0), 0
+      (acc, v) => acc + (Number(v.total) || 0),
+      0
     );
 
     const ventasDiaGeneral = await Venta.find({
-      fecha: { $gte: inicioDia, $lte: finDia }
+      fecha: { $gte: inicioDia, $lte: finDia },
     });
-
     const totalDiaGeneral = ventasDiaGeneral.reduce(
-      (acc, v) => acc + (Number(v.total) || 0), 0
+      (acc, v) => acc + (Number(v.total) || 0),
+      0
     );
 
     const ventasMesGeneral = await Venta.find({
-      fecha: { $gte: inicioMes, $lte: finMes }
+      fecha: { $gte: inicioMes, $lte: finMes },
     });
-
     const totalMesGeneral = ventasMesGeneral.reduce(
-      (acc, v) => acc + (Number(v.total) || 0), 0
+      (acc, v) => acc + (Number(v.total) || 0),
+      0
     );
 
-    const filtroMes = {
-      fecha: { $gte: inicioMes, $lte: finMes }
-    };
-
-    if (metodo && metodo !== "todos") {
-      filtroMes.metodoPago = metodo;
-    }
+    const filtroMes = { fecha: { $gte: inicioMes, $lte: finMes } };
+    if (metodo && metodo !== "todos") filtroMes.metodoPago = metodo;
 
     const ventasMesFiltradas = await Venta.find(filtroMes);
-
     const totalMesFiltrado = ventasMesFiltradas.reduce(
-      (acc, v) => acc + (Number(v.total) || 0), 0
+      (acc, v) => acc + (Number(v.total) || 0),
+      0
     );
 
     const hoyDate = new Date();
     const hoyStr = hoyDate.toISOString().slice(0, 10);
-
     const tresDiasDespues = new Date();
     tresDiasDespues.setDate(hoyDate.getDate() + 3);
     const hastaTresDias = tresDiasDespues.toISOString().slice(0, 10);
 
     const citas = await Cita.find({
       estado: "activa",
-      dia: { $gte: hoyStr, $lte: hastaTresDias }
+      dia: { $gte: hoyStr, $lte: hastaTresDias },
     })
       .sort({ dia: 1, hora: 1 })
       .populate("usuario", "nombre email telefono");
@@ -141,22 +120,18 @@ router.get("/", requireAdmin, async (req, res) => {
     const productosPerros = productos
       .filter(p => p.category === "perros")
       .sort(ordenarCriticos);
-
     const productosGatos = productos
       .filter(p => p.category === "gatos")
       .sort(ordenarCriticos);
-
     const productosOtros = productos
       .filter(p => p.category === "otros")
       .sort(ordenarCriticos);
-
     const productosCriticosLista = productos
       .filter(p => p.stock <= 5)
       .sort((a, b) => a.stock - b.stock);
 
     res.render("admin", {
-      userName: req.user.nombre, // ← CORREGIDO
-
+      userName: req.user.nombre,
       citas,
       reservas,
       usuarios,
@@ -165,46 +140,38 @@ router.get("/", requireAdmin, async (req, res) => {
       productosGatos,
       productosOtros,
       productosCriticosLista,
-
       citasHoy,
       reservasHoy,
       ventasHoy,
       productosCriticos,
-
       ventas: ventasFiltradasDia,
       totalDiaGeneral,
       totalDiaFiltrado,
       totalMesGeneral,
       totalMesFiltrado,
-
       fechaFiltro: fecha || "",
-      metodoFiltro: metodo || "todos"
+      metodoFiltro: metodo || "todos",
     });
-
   } catch (err) {
     console.error("ERROR en /admin:", err);
     res.status(500).send("Error cargando panel del administrador");
   }
 });
 
-/* ======================
-   🔥 VISTA DE COMPRAS
-   ====================== */
+/* COMPRAS */
 router.get("/compras", requireAdmin, (req, res) => {
-  res.render("compras", { userName: req.user.nombre }); // ← CORREGIDO
+  res.render("compras", { userName: req.user.nombre });
 });
 
-/* ======================
-   🔥 BUSCAR USUARIO
-   ====================== */
 router.post("/compras/buscarUsuario", requireAdmin, async (req, res) => {
   const { nombreUsuario } = req.body;
 
   let usuario = await User.findOne({ nombre: nombreUsuario.trim() });
 
   const reservas = usuario
-    ? await Reserva.find({ usuario: usuario._id, estado: "activa" })
-        .populate("producto.id")
+    ? await Reserva.find({ usuario: usuario._id, estado: "activa" }).populate(
+        "producto.id"
+      )
     : [];
 
   const productos = await Producto.find();
@@ -227,9 +194,6 @@ router.post("/compras/buscarUsuario", requireAdmin, async (req, res) => {
   });
 });
 
-/* ======================
-   🔥 REGISTRAR COMPRA
-   ====================== */
 router.post("/compras/registrar", requireAdmin, async (req, res) => {
   try {
     let {
@@ -294,22 +258,104 @@ router.post("/compras/registrar", requireAdmin, async (req, res) => {
     }
 
     res.sendStatus(200);
-
   } catch (err) {
     console.error("Error registrando compra:", err);
     res.status(500).send("Error registrando compra");
   }
 });
 
-/* ======================
-   🔥 DETALLE VENTA
-   ====================== */
 router.get("/ventas/:id", requireAdmin, async (req, res) => {
   const venta = await Venta.findById(req.params.id)
     .populate("usuario", "nombre")
     .populate("productos.id", "name price img");
 
   res.json(venta);
+});
+
+/* CRUD PRODUCTOS */
+router.post("/producto/nuevo", requireAdmin, upload.single("img"), async (req, res) => {
+  try {
+    const { name, price, stock, category } = req.body;
+
+    await Producto.create({
+      name,
+      price,
+      stock,
+      category,
+      img: req.file ? `/uploads/${req.file.filename}` : "/img/default-product.png",
+    });
+
+    res.status(200).send("OK");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error");
+  }
+});
+
+router.post("/producto/:id", requireAdmin, upload.single("img"), async (req, res) => {
+  try {
+    const { name, price, stock, category } = req.body;
+    const update = { name, price, stock, category };
+
+    if (req.file) {
+      update.img = `/uploads/${req.file.filename}`;
+    }
+
+    await Producto.findByIdAndUpdate(req.params.id, update);
+
+    res.status(200).send("OK");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error");
+  }
+});
+
+router.delete("/producto/:id", requireAdmin, async (req, res) => {
+  try {
+    await Producto.findByIdAndDelete(req.params.id);
+    res.status(200).send("OK");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error eliminando producto");
+  }
+});
+
+/* USUARIOS */
+router.post("/usuario/:id", requireAdmin, async (req, res) => {
+  try {
+    const { rol } = req.body;
+    await User.findByIdAndUpdate(req.params.id, { rol });
+    res.send("OK");
+  } catch (err) {
+    console.error("Error editando usuario:", err);
+    res.status(500).send("Error");
+  }
+});
+
+router.delete("/usuario/:id", requireAdmin, async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.send("OK");
+  } catch (err) {
+    console.error("Error eliminando usuario:", err);
+    res.status(500).send("Error");
+  }
+});
+
+router.put("/usuario/:id", requireAdmin, async (req, res) => {
+  try {
+    const { nombre, rol } = req.body;
+
+    await User.findByIdAndUpdate(req.params.id, {
+      nombre,
+      rol,
+    });
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
 });
 
 module.exports = router;
