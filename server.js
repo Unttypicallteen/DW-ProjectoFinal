@@ -2,7 +2,6 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
-const session = require('express-session');
 
 // Inicializar app
 const app = express();
@@ -14,13 +13,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Sesiones
-app.use(session({
-  secret: 'novapet-secret-key-2025',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false }
-}));
+
 
 // Conexión Mongo
 const { connectDatabase } = require("./src/config/database");
