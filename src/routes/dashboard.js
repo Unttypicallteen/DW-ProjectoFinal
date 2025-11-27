@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn } = require("../middleware/auth");
-
+const { requireAuth } = require("../middlewares/auth");
 // Dashboard cliente
-router.get("/", isLoggedIn, (req, res) => {
+router.get("/", requireAuth, (req, res) => {
   res.render("dashboard", { userName: req.session.user.nombre });
 });
 

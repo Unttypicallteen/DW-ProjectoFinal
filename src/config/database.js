@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
-export async function connectDatabase() {
+async function connectDatabase() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
@@ -15,3 +15,5 @@ export async function connectDatabase() {
     console.error("❌ Error conectando a MongoDB Atlas:", error.message);
   }
 }
+
+module.exports = { connectDatabase };

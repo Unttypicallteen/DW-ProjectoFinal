@@ -1,12 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn } = require("../middleware/auth");
+
+const { requireAuth } = require("../middlewares/auth");
 
 const Producto = require("../models/producto");
 const Reserva = require("../models/reserva");
 
-// Mostrar catálogo
-router.get("/", isLoggedIn, async (req, res) => {
+// =====================================================
+// MOSTRAR CATÁLOGO
+// =====================================================
+router.get("/", requireAuth, async (req, res) => {
   try {
     const CATEGORIES = ["perros", "gatos", "otros"];
 
@@ -18,9 +21,9 @@ router.get("/", isLoggedIn, async (req, res) => {
     const products = await Producto.find({ category: cat }).lean();
 
     res.render("catalogo", {
-      userName: req.session.user.nombre,
+      userName: req.user.nombre,   // ← CORREGIDO
       categories: CATEGORIES,
-      products: products,
+      products,
       activeCategory: cat,
       message: req.query.msg || null,
     });
@@ -31,8 +34,10 @@ router.get("/", isLoggedIn, async (req, res) => {
   }
 });
 
-// Crear reserva (con control de stock)
-router.post("/reservar", isLoggedIn, async (req, res) => {
+// =====================================================
+// CREAR RESERVA
+// =====================================================
+router.post("/reservar", requireAuth, async (req, res) => {
   try {
     const { productId, qty } = req.body;
 
@@ -44,7 +49,10 @@ router.post("/reservar", isLoggedIn, async (req, res) => {
     const product = await Producto.findById(productId);
 
     if (!product) {
-      return res.status(404).json({ ok: false, message: "Producto no encontrado." });
+      return res.status(404).json({
+        ok: false,
+        message: "Producto no encontrado."
+      });
     }
 
     // Validar stock
@@ -59,12 +67,13 @@ router.post("/reservar", isLoggedIn, async (req, res) => {
     product.stock -= cantidadSolicitada;
     await product.save();
 
-    // Crear reserva
+    // Crear fecha de reserva
     const fechaReserva = new Date();
     fechaReserva.setDate(fechaReserva.getDate() + 2);
 
+    // Crear reserva
     const reserva = new Reserva({
-      usuario: req.session.user.id,
+      usuario: req.user.id,   // ← CORREGIDO
       producto: {
         id: product._id,
         nombre: product.name,

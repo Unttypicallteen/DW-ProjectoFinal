@@ -1,63 +1,68 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn } = require("../middleware/auth");
+
+const { requireAuth } = require("../middlewares/auth");
+
 const User = require("../models/user");
 const Reserva = require("../models/reserva");
 const Cita = require("../models/cita");
-const Producto = require("../models/producto");   // <<--- AQUI
-
+const Producto = require("../models/producto");
 const upload = require("../config/multer");
 
 /* =========================
    PERFIL PRINCIPAL
 ========================= */
-router.get("/", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.session.user.id);
-  res.render("perfil", { userName: user.nombre, user });
+router.get("/", requireAuth, async (req, res) => {
+  const user = await User.findById(req.user.id);
+  res.render("perfil", {
+    userName: req.user.nombre,
+    user
+  });
 });
 
-router.get("/info", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.session.user.id);
+/* =========================
+   INFO DEL PERFIL
+========================= */
+router.get("/info", requireAuth, async (req, res) => {
+  const user = await User.findById(req.user.id);
 
-  // Convertir fecha a formato más bonito
   const fechaCreada = new Date(user.creado).toLocaleDateString("es-CO", {
     year: "numeric",
     month: "long",
     day: "numeric"
   });
 
-  // Contar actividad
   const reservasActivas = await Reserva.countDocuments({
-    usuario: req.session.user.id,
+    usuario: req.user.id,
     estado: "activa"
   });
 
   const citasActivas = await Cita.countDocuments({
-    usuario: req.session.user.id,
+    usuario: req.user.id,
     estado: "activa"
   });
 
   res.render("perfil-info", {
-    userName: user.nombre,
+    userName: req.user.nombre,
     user,
     reservasActivas,
     citasActivas,
-    fechaCreada    // 👈 enviamos la fecha ya formateada
+    fechaCreada
   });
 });
-
-
-
 
 /* =========================
    EDITAR PERFIL
 ========================= */
-router.get("/editar", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.session.user.id);
-  res.render("perfil-editar", { userName: user.nombre, user });
+router.get("/editar", requireAuth, async (req, res) => {
+  const user = await User.findById(req.user.id);
+  res.render("perfil-editar", {
+    userName: req.user.nombre,
+    user
+  });
 });
 
-router.post("/editar", isLoggedIn, async (req, res) => {
+router.post("/editar", requireAuth, async (req, res) => {
   try {
     const { nombre, email, tel, pass } = req.body;
 
@@ -68,12 +73,11 @@ router.post("/editar", isLoggedIn, async (req, res) => {
       actualizado: new Date()
     };
 
-    // Si escribió contraseña → actualizar
     if (pass && pass.length >= 6) {
       update.password = pass;
     }
 
-    await User.findByIdAndUpdate(req.session.user.id, update);
+    await User.findByIdAndUpdate(req.user.id, update);
 
     return res.json({ ok: true, message: "Datos actualizados correctamente" });
 
@@ -83,34 +87,27 @@ router.post("/editar", isLoggedIn, async (req, res) => {
   }
 });
 
-
-
 /* =========================
-   RESERVAS Y CITAS (Mongo)
+   RESERVAS Y CITAS
 ========================= */
-/* =========================
-   RESERVAS Y CITAS (Mongo)
-========================= */
-router.get("/reservas", isLoggedIn, async (req, res) => {
+router.get("/reservas", requireAuth, async (req, res) => {
   try {
     const tipo = req.query.tipo || "productos";
 
     const [reservas, citas] = await Promise.all([
-      Reserva.find({ usuario: req.session.user.id }).populate("producto.id"),
-      Cita.find({ usuario: req.session.user.id })
+      Reserva.find({ usuario: req.user.id }).populate("producto.id"),
+      Cita.find({ usuario: req.user.id })
     ]);
 
     const hoy = new Date();
-    const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    const hoySinHora = new Date(
+      hoy.getFullYear(),
+      hoy.getMonth(),
+      hoy.getDate()
+    );
 
-    /* =========================
-       FORMATEAR RESERVAS
-    ========================== */
     const reservasFmt = reservas.map(r => {
       const f = new Date(r.fechaReserva);
-
-      let estado = r.estado; 
-      // estado puede ser: activa | cancelada | entregada
 
       return {
         _id: r._id,
@@ -120,18 +117,13 @@ router.get("/reservas", isLoggedIn, async (req, res) => {
         precio: r.producto?.price,
         cantidad: r.cantidad,
         fecha: f.toLocaleDateString("es-CO"),
-        estado
+        estado: r.estado
       };
     });
 
-    /* =========================
-       FORMATEAR CITAS
-    ========================== */
     const citasFmt = citas.map(c => {
       const [y, m, d] = c.dia.split("-");
-      const fechaCita = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-
-      let estado = c.estado; // activa o cancelada
+      const fechaCita = new Date(y, m - 1, d);
 
       return {
         _id: c._id,
@@ -141,36 +133,28 @@ router.get("/reservas", isLoggedIn, async (req, res) => {
           c.tipo === "vacuna"
             ? "/img/servicios/vacuna.png"
             : c.tipo === "grooming"
-              ? "/img/servicios/grooming.png"
-              : "/img/servicios/consulta.png",
+            ? "/img/servicios/grooming.png"
+            : "/img/servicios/consulta.png",
         fecha: `${c.dia} ${c.hora}`,
-        estado,
-        pasada: fechaCita < hoySinHora // para moverlas a historial
+        estado: c.estado,
+        pasada: fechaCita < hoySinHora
       };
     });
 
-    /* =========================
-       FILTRO FINAL
-    ========================== */
     let items = [];
 
     if (tipo === "productos") {
       items = reservasFmt.filter(i => i.estado === "activa");
-    }
-
-    else if (tipo === "citas") {
+    } else if (tipo === "citas") {
       items = citasFmt.filter(i => i.estado === "activa" && !i.pasada);
-    }
-
-    else if (tipo === "historial") {
+    } else if (tipo === "historial") {
       items = [...reservasFmt, ...citasFmt].filter(i =>
-        i.estado === "vencida" || i.estado === "cancelada" || i.estado === "entregada"
+        ["vencida", "cancelada", "entregada"].includes(i.estado)
       );
     }
 
-
     res.render("reservas", {
-      userName: req.session.user.nombre,
+      userName: req.user.nombre,
       items,
       tipo
     });
@@ -181,11 +165,10 @@ router.get("/reservas", isLoggedIn, async (req, res) => {
   }
 });
 
-
 /* =========================
    CANCELAR RESERVA O CITA
 ========================= */
-router.post("/cancelar", isLoggedIn, async (req, res) => {
+router.post("/cancelar", requireAuth, async (req, res) => {
   try {
     const { id, tipo } = req.body;
 
@@ -193,23 +176,17 @@ router.post("/cancelar", isLoggedIn, async (req, res) => {
       return res.json({ ok: false, message: "Datos incompletos." });
     }
 
-    // ---------- CANCELAR RESERVA O CITA ----------
-    let item;
-
     if (tipo === "productos") {
-      item = await Reserva.findById(id);
+      const item = await Reserva.findById(id);
 
       if (!item) return res.json({ ok: false, message: "Reserva no encontrada." });
 
-      // 🔥 1. Actualizar estado
       item.estado = "cancelada";
       await item.save();
 
-      // 🔥 2. Devolver stock
-      await Producto.findByIdAndUpdate(
-        item.producto.id,
-        { $inc: { stock: item.cantidad } }
-      );
+      await Producto.findByIdAndUpdate(item.producto.id, {
+        $inc: { stock: item.cantidad }
+      });
 
       return res.json({
         ok: true,
@@ -217,9 +194,8 @@ router.post("/cancelar", isLoggedIn, async (req, res) => {
       });
     }
 
-    // ---------- CANCELAR CITA ----------
     if (tipo === "citas") {
-      item = await Cita.findById(id);
+      const item = await Cita.findById(id);
 
       if (!item) return res.json({ ok: false, message: "Cita no encontrada." });
 
@@ -241,15 +217,13 @@ router.post("/cancelar", isLoggedIn, async (req, res) => {
 });
 
 /* =========================
-   ACTUALIZAR FOTO DE PERFIL
+   ACTUALIZAR AVATAR
 ========================= */
-router.post("/avatar", isLoggedIn, upload.single("avatar"), async (req, res) => {
+router.post("/avatar", requireAuth, upload.single("avatar"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.redirect("/perfil/info");
-    }
+    if (!req.file) return res.redirect("/perfil/info");
 
-    await User.findByIdAndUpdate(req.session.user.id, {
+    await User.findByIdAndUpdate(req.user.id, {
       avatar: "/uploads/avatars/" + req.file.filename,
       actualizado: new Date()
     });
