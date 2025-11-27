@@ -123,7 +123,7 @@ router.post("/forgot", async (req, res) => {
 
   const baseUrl =
     process.env.NODE_ENV === "production"
-      ? "https://TU_DOMINIO.vercel.app"
+      ? "https://novapet-225uoccko-santiago-s-projects-50582809.vercel.app"
       : "http://localhost:3000";
 
   const link = `${baseUrl}/reset/${token}`;
