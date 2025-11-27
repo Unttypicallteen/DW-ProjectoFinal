@@ -4,7 +4,7 @@ export async function connectDatabase() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.error("❌ ERROR: MONGODB_URI no está definida en Vercel.");
+    console.error("❌ ERROR: MONGODB_URI no está definida.");
     return;
   }
 
