@@ -1,16 +1,17 @@
 import mongoose from "mongoose";
 
 export async function connectDatabase() {
-  const host = process.env.MONGO_HOST || "127.0.0.1";
-  const port = process.env.MONGO_PORT || "27017";
-  const dbName = process.env.MONGO_DB || "novapet";
+  const uri = process.env.MONGODB_URI;
 
-  const uri = `mongodb://${host}:${port}/${dbName}`;
+  if (!uri) {
+    console.error("❌ ERROR: MONGODB_URI no está definida en Vercel.");
+    return;
+  }
 
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
-  console.log("🐶 Mongo conectado:", uri);
+  try {
+    await mongoose.connect(uri);
+    console.log("🐶 MongoDB conectado a Atlas correctamente");
+  } catch (error) {
+    console.error("❌ Error conectando a MongoDB Atlas:", error.message);
+  }
 }
