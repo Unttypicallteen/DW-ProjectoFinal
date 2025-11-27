@@ -19,32 +19,26 @@ router.post("/login", async (req, res) => {
     if (!user)
       return res.status(400).render("index", { error: "Credenciales inválidas" });
 
-    // Generar token JWT
+    const { generarToken } = require("../utils/jwt");
     const token = generarToken(user);
 
-    // Enviar cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,   // obligatorio en Vercel
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7
     });
 
-    // Redirección por rol
-    switch (user.rol) {
-      case "admin":
-        return res.redirect("/admin");
-      case "cajero":
-        return res.redirect("/cajero");
-      default:
-        return res.redirect("/dashboard");
-    }
+    if (user.rol === "admin") return res.redirect("/admin");
+    if (user.rol === "cajero") return res.redirect("/cajero");
+    return res.redirect("/dashboard");
 
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).render("index", { error: "Error interno" });
   }
 });
+
 
 
 

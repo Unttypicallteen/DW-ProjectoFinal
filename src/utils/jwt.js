@@ -11,16 +11,8 @@ function generarToken(usuario) {
       nombre: usuario.nombre
     },
     JWT_SECRET,
-    { expiresIn: "7d" } // duración de 7 días
+    { expiresIn: "7d" }
   );
 }
 
-function verificarToken(token) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch {
-    return null;
-  }
-}
-
-module.exports = { generarToken, verificarToken };
+module.exports = { generarToken };
