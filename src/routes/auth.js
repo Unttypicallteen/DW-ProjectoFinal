@@ -17,17 +17,18 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email, password });
     if (!user)
-      return res.status(400).render("index", {
-        error: "Credenciales inválidas",
-      });
+      return res.status(400).render("index", { error: "Credenciales inválidas" });
 
-    // Guardar sesión
-    req.session.user = {
-      id: user._id,
-      nombre: user.nombre,
-      email: user.email,
-      rol: user.rol,
-    };
+    // Generar token JWT
+    const token = generarToken(user);
+
+    // Enviar cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,   // obligatorio en Vercel
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7
+    });
 
     // Redirección por rol
     switch (user.rol) {
@@ -35,15 +36,16 @@ router.post("/login", async (req, res) => {
         return res.redirect("/admin");
       case "cajero":
         return res.redirect("/cajero");
-      case "cliente":
       default:
         return res.redirect("/dashboard");
     }
+
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).render("index", { error: "Error interno" });
   }
 });
+
 
 
 /* ---------- REGISTER ---------- */
@@ -122,7 +124,10 @@ router.post("/reset/:token", async (req, res) => {
 });
 
 /* ---------- LOGOUT ---------- */
-router.get("/logout", (req, res) => req.session.destroy(() => res.redirect("/")));
+router.get("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.redirect("/");
+});
 
 
 

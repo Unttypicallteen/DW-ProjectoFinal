@@ -25,14 +25,19 @@ app.use(session({
 // Conexión Mongo
 const { connectDatabase } = require("./src/config/database");
 connectDatabase();
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 // Rutas modulares
-app.use('/', require('./src/routes/auth'));
-app.use('/catalogo', require('./src/routes/catalogo'));
-app.use('/cita', require('./src/routes/cita'));
-app.use('/perfil', require('./src/routes/perfil'));
-app.use('/admin', require('./src/routes/admin'));
-app.use('/dashboard', require('./src/routes/dashboard'));
+app.use('/', authRoutes);  // login, register, etc.
+
+app.use('/catalogo', requireAuth, catalogoRoutes);
+app.use('/cita', requireAuth, citaRoutes);
+app.use('/perfil', requireAuth, perfilRoutes);
+
+app.use('/admin', requireAdmin, adminRoutes);    // SOLO admin
+app.use('/dashboard', requireAuth, dashboardRoutes);
+
 
 // ⛔ NO usar app.listen() en Vercel
 // const PORT = process.env.PORT || 3000;

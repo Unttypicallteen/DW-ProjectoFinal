@@ -1,24 +1,30 @@
-// Exportar middlewares sin destruir el router
-const middlewares = {
-  isLoggedIn: (req, res, next) => {
-    if (!req.session.user) return res.redirect('/');
-    next();
-  },
+const { verificarToken } = require("../utils/jwt");
 
-  isAdmin: (req, res, next) => {
-    if (!req.session.user || req.session.user.rol !== 'admin')
-      return res.status(403).send("❌ Acceso solo para administradores");
-    next();
-  },
+function requireAuth(req, res, next) {
+  const token = req.cookies.token;
+  if (!token) return res.redirect("/");
 
-  isCajero: (req, res, next) => {
-    if (!req.session.user || req.session.user.rol !== 'cajero')
-      return res.redirect("/");
-    next();
+  const data = verificarToken(token);
+  if (!data) return res.redirect("/");
+
+  req.user = data;
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  const token = req.cookies.token;
+  if (!token) return res.redirect("/");
+
+  const data = verificarToken(token);
+  if (!data || data.rol !== "admin") {
+    return res.status(403).send("❌ Acceso solo para administradores");
   }
-};
+
+  req.user = data;
+  next();
+}
 
 module.exports = {
-  router,
-  ...middlewares
+  requireAuth,
+  requireAdmin
 };
