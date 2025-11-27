@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VetCare | Clínica Veterinaria 🐾</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/estilo.css" />
+
+  <script>
+    // Mostrar / Ocultar contraseña con emojis
+    function togglePassword(id, iconId) {
+      const input = document.getElementById(id);
+      const icon = document.getElementById(iconId);
+      const type = input.getAttribute("type") === "password" ? "text" : "password";
+      input.setAttribute("type", type);
+      icon.textContent = type === "password" ? "👁️" : "🙈";
+    }
+  </script>
+</head>
+
+<body class="page-index">
+  <main class="login-container">
+    <!-- IZQUIERDA -->
+    <section class="login-left">
+      <img src="/img/logo.jpg" alt="Logo VetCare - Clínica Veterinaria" class="login-logo" />
+      <h2 class="login-slogan">Amor, cuidado y bienestar<br>para cada mascota</h2>
+    </section>
+
+    <!-- DERECHA -->
+    <section class="login-right">
+      <div class="login-right-inner">
+        <h2 class="login-title"> Bienvenido a <span>VetCare</span></h2>
+        <p class="login-subtitle">Cuidamos a tus mascotas como si fueran parte de nuestra familia</p>
+
+        <form class="login-form" action="/login" method="post" novalidate>
+          
+          <!-- Campo Email -->
+          <div class="field">
+            <label for="email">Correo</label>
+            <div class="input-wrapper">
+              <input id="email" name="email" type="text" placeholder="Ejemplo: maria@email.com" required />
+                                        <span class="input-icon">👤</span>
+
+            </div>
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="field">
+            <label for="password">Contraseña</label>
+            <div class="input-wrapper">
+              <input id="password" name="password" type="password" placeholder="Tu contraseña" required />
+                          <span class="input-icon">🔒</span>
+              <span class="toggle-icon" id="eye-icon" onclick="togglePassword('password','eye-icon')">👁️</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login">Iniciar sesión</button>
+
+          <div class="login-links-centered">
+            <a href="/forgot">¿Olvidaste tu contraseña?</a>
+            <br>
+            <a href="/register">¿Aún no tienes cuenta? Crea una aquí</a>
+          </div>
+        </form>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert-error">
+    <span>❌ <%= error %></span>
+  </div>
+<% } %>
+
+
+
+      </div>
+    </section>
+  </main>
+</body>
+<script>
+  const alert = document.querySelector('.alert-error');
+  if (alert) {
+    setTimeout(() => {
+      alert.style.opacity = '0';
+      alert.style.transition = 'opacity .5s';
+    }, 2500);
+  }
+</script>
+
+
+</html>

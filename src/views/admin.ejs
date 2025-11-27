@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetCare · Dashboard Administrador</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/estilo.css" />
+
+  <style>
+    /* --------------------------------------------- */
+    /* ESTILOS GENERALES DEL DASHBOARD */
+    /* --------------------------------------------- */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 20px;
+      width: 92%;
+      max-width: 1350px;
+      margin: 30px auto;
+    }
+
+    .admin-sidebar {
+      background: #fff;
+      padding: 20px 18px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: fit-content;
+    }
+
+    .admin-sidebar button {
+      background: #f4ecdf;
+      border: 1px solid #e5d6c1;
+      padding: 12px 16px;
+      text-align: left;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--brand-dark);
+      transition: 0.25s ease;
+    }
+
+    .admin-sidebar button:hover,
+    .admin-sidebar button.active {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand-dark);
+      transform: translateY(-2px);
+    }
+
+    .admin-panel {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      min-height: 620px;
+    }
+
+    .hidden { display: none; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+    }
+
+    table thead {
+      background: #f6efe3;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e6dccc;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    th { font-weight: 700; color: var(--brand-dark); }
+
+    td button {
+      background: var(--brand);
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-nuevo {
+      padding: 10px 14px;
+      background: #2f855a;
+      color: white;
+      border: none;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-nuevo:hover { opacity: .85; }
+
+    /* --------------------------------------------- */
+    /* MODAL */
+    /* --------------------------------------------- */
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  display: none; /* IMPORTANT: oculto por defecto */
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-overlay.show {
+  display: flex !important; /* cuando se muestre */
+}
+
+
+    .modal-card-wide {
+      background: white;
+      width: 860px;
+      height: 480px;
+      display: flex;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    /* IZQUIERDA */
+    .modal-left {
+      flex: 1;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+      gap: 15px;
+    }
+
+    .modal-left img {
+      width: 90%;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+
+    /* DERECHA */
+    .modal-right {
+      flex: 1;
+      padding: 25px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-right h2 {
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .modal-right input,
+    .modal-right select {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .modal-actions {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn-save {
+      background: var(--brand);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .btn-close {
+      background: #999;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+  </style>
+</head>
+
+<body class="page-dashboard">
+
+<!-- ----------------------------------------------------- -->
+<!-- ENCABEZADO -->
+<!-- ----------------------------------------------------- -->
+<header class="dash-top">
+  <div class="dash-top__inner">
+
+    <div class="dash-brand">
+      <img src="/img/logo.jpg" alt="logo" />
+    </div>
+
+    <div class="user">
+      <span class="user__hello">Hola,</span>
+      <button class="user__btn">Administrador ▾</button>
+
+      <div class="user__menu">
+        <a href="/logout">Cerrar Sesión</a>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<h1 class="dash-title" style="text-align:center; margin-top:35px;">
+  Dashboard de Administración
+</h1>
+
+<div class="admin-layout">
+
+  <!-- ----------------------------------------------------- -->
+  <!-- SIDEBAR -->
+  <!-- ----------------------------------------------------- -->
+  <aside class="admin-sidebar">
+    <button class="active" onclick="showPanel('panel-kpi', event)">📊 Resumen del Día</button>
+    <button onclick="showPanel('panel-citas', event)">📅 Citas Programadas</button>
+    <button onclick="showPanel('panel-reservas', event)">📦 Reservas Activas</button>
+    <button onclick="showPanel('panel-ventas', event)">💰 Historial de Ventas</button>
+    <button onclick="showPanel('panel-stock', event)">📦 Inventario</button>
+    <button onclick="showPanel('panel-usuarios', event)">👤 Gestión de Usuarios</button>
+    <button onclick="window.location.href='/admin/compras'">🧾 Registrar Compra</button>
+
+  </aside>
+
+  <!-- ----------------------------------------------------- -->
+  <!-- MAIN PANEL -->
+  <!-- ----------------------------------------------------- -->
+  <main class="admin-panel">
+
+    <!-- PANEL KPI -->
+    <section id="panel-kpi">
+
+      <div class="kpi-grid">
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon">📅</div>
+            <h2>Citas Programadas</h2>
+          </div>
+          <div class="kpi-center"><div class="kpi-number"><%= citasHoy %></div></div>
+          <div class="kpi-bottom">
+            <button class="kpi-btn-min" onclick="showPanel('panel-citas', event)">Ver Detalles</button>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon">📦</div>
+            <h2>Reservas Activas</h2>
+          </div>
+          <div class="kpi-center"><div class="kpi-number"><%= reservasHoy %></div></div>
+          <div class="kpi-bottom">
+            <button class="kpi-btn-min" onclick="showPanel('panel-reservas', event)">Ver Detalles</button>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon">📦</div>
+            <h2>Stock Crítico</h2>
+          </div>
+          <div class="kpi-center"><div class="kpi-number"><%= productosCriticos %></div></div>
+          <div class="kpi-bottom">
+            <button class="kpi-btn-min" onclick="showPanel('panel-stock', event)">Ver Detalles</button>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon">👤</div>
+            <h2>Usuarios</h2>
+          </div>
+          <div class="kpi-center"><div class="kpi-number"><%= usuarios.length %></div></div>
+          <div class="kpi-bottom">
+            <button class="kpi-btn-min" onclick="showPanel('panel-usuarios', event)">Ver Detalles</button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- PANEL CITAS -->
+    <section id="panel-citas" class="hidden">
+      <h2>Citas Programadas </h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Fecha</th>       <!-- NUEVO -->
+            <th>Hora</th>
+            <th>Usuario</th>
+            <th>Especie</th>
+            <th>Detalles</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (citas.length > 0) { %>
+            <% citas.forEach(c => { %>
+              <tr>
+                <td><%= c.tipo %></td>
+                <td><%= c.dia %></td>
+                <td><%= c.hora %></td>
+                <td><%= c.usuario ? c.usuario.nombre : "Usuario desconocido" %></td>
+                <td><%= c.especie %></td>
+                <td><%= c.servicio %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="5">No hay citas para hoy.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PANEL RESERVAS -->
+    <section id="panel-reservas" class="hidden">
+      <h2>Reservas Activas</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Vencimiento</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (reservas.length > 0) { %>
+            <% reservas.forEach(r => { %>
+              <tr>
+                <td><%= r.producto.nombre %></td>
+                <td><%= r.cantidad %></td>
+                <td>
+                  <% let venc = new Date(r.fechaReserva); venc.setDate(venc.getDate() + 3); %>
+                  <%= venc.toISOString().slice(0,10) %>
+                </td>
+                <td><%= r.usuario ? r.usuario.nombre : "Usuario desconocido" %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="4">No hay reservas activas.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PANEL VENTAS -->
+    <section id="panel-ventas" class="hidden">
+  <h2>Historial de Ventas</h2>
+
+  <form method="GET" action="/admin" style="margin-bottom: 12px;">
+    <label>Fecha:</label>
+    <input type="date" name="fecha" value="<%= fechaFiltro %>">
+
+    <label>Método:</label>
+    <select name="metodo">
+      <option value="todos"   <%= metodoFiltro === "todos" ? "selected" : "" %>>Todos</option>
+      <option value="efectivo" <%= metodoFiltro === "efectivo" ? "selected" : "" %>>Efectivo</option>
+      <option value="nequi"    <%= metodoFiltro === "nequi" ? "selected" : "" %>>Nequi</option>
+      <option value="tarjeta"  <%= metodoFiltro === "tarjeta" ? "selected" : "" %>>Tarjeta</option>
+    </select>
+
+    <button type="submit">Filtrar</button>
+  </form>
+
+<p><strong>Total del día (general):</strong> 
+   $<%= totalDiaGeneral.toLocaleString('es-CO') %></p>
+
+<p><strong>Total del día (filtrado):</strong> 
+   $<%= totalDiaFiltrado.toLocaleString('es-CO') %></p>
+
+<br>
+
+<p><strong>Total del mes (general):</strong> 
+   $<%= totalMesGeneral.toLocaleString('es-CO') %></p>
+
+<p><strong>Total del mes (filtrado):</strong> 
+   $<%= totalMesFiltrado.toLocaleString('es-CO') %></p>
+
+<br>
+
+  <br>
+
+<table>
+  <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Cliente</th>
+      <th>Monto</th>
+      <th>Método</th>
+      <th>Detalles</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% if (ventas.length === 0) { %>
+      <tr><td colspan="5">No hay ventas registradas.</td></tr>
+    <% } %>
+
+    <% ventas.forEach(v => { %>
+      <tr>
+        <td><%= new Date(v.fecha).toLocaleString() %></td>
+        <td><%= v.usuario ? v.usuario.nombre : "Compra en tienda" %></td>
+        <td>$<%= v.total %></td>
+        <td><%= v.metodoPago %></td>
+        <td>
+          <button onclick="verDetalles('<%= v._id %>')">👁 Ver</button>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+    </section>
+
+    <!-- PANEL INVENTARIO -->
+    <section id="panel-stock" class="hidden">
+      <h2 style="margin-bottom:20px;">Inventario General</h2>
+
+      <button class="btn-nuevo" onclick="nuevoProducto()">➕ Nuevo Producto</button>
+      <button class="btn-delete-global" onclick="abrirEliminarProducto()">🗑️ Eliminar Producto</button>
+
+      <!-- --- CRÍTICOS --- -->
+      <h3 style="margin-top:15px; color:#c53030;">🟥 Productos Críticos</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% if (productosCriticosLista.length > 0) { %>
+          <% productosCriticosLista.forEach(p => { %>
+            <tr>
+              <td><%= p.name %></td>
+              <td style="text-transform: capitalize;"><%= p.category %></td>
+              <td><%= p.stock %></td>
+              <td><span style="color:#c53030;font-weight:bold;">Crítico</span></td>
+              <td>
+                <button class="btn-editar-producto"
+                  data-id="<%= p._id %>"
+                  data-nombre="<%= p.name %>"
+                  data-precio="<%= p.price %>"
+                  data-stock="<%= p.stock %>"
+                  data-img="<%= p.img %>"
+                  data-categoria="<%= p.category %>"
+                >Modificar</button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="5">No hay productos críticos.</td></tr>
+        <% } %>
+        </tbody>
+      </table>
+
+      <!-- --- PERROS --- -->
+      <h3 style="margin-top:25px;">🐶 Productos para Perros</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% if (productosPerros.length > 0) { %>
+          <% productosPerros.forEach(p => { %>
+            <tr>
+              <td><%= p.name %></td>
+              <td><%= p.stock %></td>
+              <td>
+                <% if (p.stock <= 5) { %>
+                  <span style="color:#c53030; font-weight:bold;">Crítico</span>
+                <% } else { %>
+                  <span style="color:#2f855a; font-weight:bold;">Normal</span>
+                <% } %>
+              </td>
+              <td>
+                <button class="btn-editar-producto"
+                  data-id="<%= p._id %>"
+                  data-nombre="<%= p.name %>"
+                  data-precio="<%= p.price %>"
+                  data-stock="<%= p.stock %>"
+                  data-img="<%= p.img %>"
+                  data-categoria="<%= p.category %>"
+                >Modificar</button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="4">No hay productos para perros.</td></tr>
+        <% } %>
+        </tbody>
+      </table>
+
+      <!-- --- GATOS --- -->
+      <h3 style="margin-top:25px;">🐱 Productos para Gatos</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% if (productosGatos.length > 0) { %>
+          <% productosGatos.forEach(p => { %>
+            <tr>
+              <td><%= p.name %></td>
+              <td><%= p.stock %></td>
+              <td>
+                <% if (p.stock <= 5) { %>
+                  <span style="color:#c53030; font-weight:bold;">Crítico</span>
+                <% } else { %>
+                  <span style="color:#2f855a; font-weight:bold;">Normal</span>
+                <% } %>
+              </td>
+              <td>
+                <button class="btn-editar-producto"
+                  data-id="<%= p._id %>"
+                  data-nombre="<%= p.name %>"
+                  data-precio="<%= p.price %>"
+                  data-stock="<%= p.stock %>"
+                  data-img="<%= p.img %>"
+                  data-categoria="<%= p.category %>"
+                >Modificar</button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="4">No hay productos para gatos.</td></tr>
+        <% } %>
+        </tbody>
+      </table>
+
+      <!-- --- OTROS --- -->
+      <h3 style="margin-top:25px;">🐾 Otros Productos</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% if (productosOtros.length > 0) { %>
+          <% productosOtros.forEach(p => { %>
+            <tr>
+              <td><%= p.name %></td>
+              <td><%= p.stock %></td>
+              <td>
+                <% if (p.stock <= 5) { %>
+                  <span style="color:#c53030; font-weight:bold;">Crítico</span>
+                <% } else { %>
+                  <span style="color:#2f855a; font-weight:bold;">Normal</span>
+                <% } %>
+              </td>
+              <td>
+                <button class="btn-editar-producto"
+                  data-id="<%= p._id %>"
+                  data-nombre="<%= p.name %>"
+                  data-precio="<%= p.price %>"
+                  data-stock="<%= p.stock %>"
+                  data-img="<%= p.img %>"
+                  data-categoria="<%= p.category %>"
+                >Modificar</button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="4">No hay productos en esta categoría.</td></tr>
+        <% } %>
+        </tbody>
+      </table>
+
+    </section>
+
+    <!-- PANEL USUARIOS -->
+<section id="panel-usuarios" class="hidden">
+  <h2>Gestión de Usuarios</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% if (usuarios.length > 0) { %>
+        <% usuarios.forEach(u => { %>
+          <tr>
+            <td><%= u.nombre %></td>
+            <td><%= u.email %></td>
+            <td style="text-transform: capitalize;"><%= u.rol %></td>
+
+            <td>
+              <!-- Botón Editar -->
+              <button class="btn-editar-usuario"
+                data-id="<%= u._id %>"
+                data-nombre="<%= u.nombre %>"
+                data-email="<%= u.email %>"
+                data-rol="<%= u.rol %>"
+              >
+                Editar
+              </button>
+
+              <!-- Botón Eliminar -->
+              <button class="btn-eliminar-usuario"
+                style="background:#c53030; margin-left:8px;"
+                data-id="<%= u._id %>"
+                data-nombre="<%= u.nombre %>"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="4">No hay usuarios registrados.</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</section>
+
+
+  </main>
+</div>
+<div id="modalEliminarUsuario" class="modal-overlay hidden">
+  <div class="modal-card-small">
+    <h2>Eliminar Usuario</h2>
+
+    <p id="modalEliminarTexto" style="margin: 15px 0; font-size: 16px; text-align:center;">
+      ¿Seguro que deseas eliminar este usuario?
+    </p>
+
+    <div class="modal-actions" style="justify-content: center; gap: 20px; margin-top: 10px;">
+      <button class="btn-save" style="background:#b7791f;" onclick="confirmarEliminarUsuario()">Eliminar</button>
+      <button class="btn-close" onclick="cerrarEliminarUsuario()">Cancelar</button>
+    </div>
+  </div>
+</div>
+<!-- ----------------------------------------------------- -->
+<!-- MODAL EDITAR USUARIO -->
+<!-- ----------------------------------------------------- -->
+<div id="modalEditarUsuario" class="modal-overlay">
+  <div class="modal-card-small" style="width:420px; padding:20px;">
+      
+    <h2>Editar Usuario</h2>
+
+    <label>Nombre:</label>
+    <input id="edit-user-nombre" type="text" style="width:100%; padding:8px; margin-bottom:10px;">
+
+    <label>Correo:</label>
+    <input id="edit-user-email" type="text" style="width:100%; padding:8px; margin-bottom:10px;" disabled>
+
+    <label>Rol:</label>
+    <select id="edit-user-rol" style="width:100%; padding:8px; margin-bottom:18px;">
+      <option value="cliente">Cliente</option>
+      <option value="admin">Administrador</option>
+      <option value="cajero">Cajero</option>
+    </select>
+
+    <div class="modal-actions" style="justify-content:center; gap:20px;">
+      <button class="btn-save" onclick="guardarCambiosUsuario()">Guardar</button>
+      <button class="btn-close" onclick="cerrarEditarUsuario()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ----------------------------------------------------- -->
+<!-- MODAL Ventas -->
+<!-- ----------------------------------------------------- -->
+<div id="modal-detalles" class="modal-overlay-detalle hidden">
+  <div class="modal-content">
+    <h3>Detalles de Venta</h3>
+    <div id="detalles-container"></div>
+    <button onclick="cerrarDetalles()">Cerrar</button>
+  </div>
+</div>
+
+<style>
+#modal-detalles .modal-content {
+  background: white;
+  width: 450px;
+  max-height: 70vh;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  overflow-y: auto;
+}
+
+#modal-detalles.show {
+  display: flex !important;
+}
+
+#modal-detalles h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+#detalles-container p {
+  margin: 6px 0;
+}
+
+#modal-detalles button {
+  background: var(--brand);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  margin-top: 15px;
+}
+</style>
+
+<script>
+async function verDetalles(id) {
+  const res = await fetch(`/admin/ventas/${id}`);
+  const data = await res.json();
+
+  let html = "";
+
+  if (data.productos.length > 0) {
+    html += `<h4>Productos</h4>`;
+    data.productos.forEach(p => {
+      html += `
+        <p>${p.id.name} — ${p.cantidad} × $${p.id.price.toLocaleString('es-CO')}</p>
+      `;
+    });
+  }
+
+  if (data.servicios.length > 0) {
+    html += `<h4>Servicios</h4>`;
+    data.servicios.forEach(s => {
+      html += `<p>${s.nombre} — $${s.precio}</p>`;
+    });
+  }
+
+  document.getElementById("detalles-container").innerHTML = html;
+  document.getElementById("modal-detalles").classList.add("show");
+}
+
+
+function cerrarDetalles() {
+  const modal = document.getElementById("modal-detalles");
+  modal.classList.remove("show");
+  modal.classList.add("hidden");
+}
+
+</script>
+
+<!-- ----------------------------------------------------- -->
+<!-- MODAL EDITAR / CREAR -->
+<!-- ----------------------------------------------------- -->
+<div id="modalProducto" class="modal-overlay hidden">
+  <div class="modal-card-wide">
+
+    <!-- IZQUIERDA -->
+    <div class="modal-left">
+      <h3>Vista previa</h3>
+      <img id="modal-img" src="/img/default-product.png" alt="Producto">
+      <label>Subir imagen:</label>
+      <input type="file" id="modal-file" accept="image/*" onchange="previewImagen(event)">
+    </div>
+
+    <!-- DERECHA -->
+    <div class="modal-right">
+      <h2 id="modal-titulo">Editar Producto</h2>
+
+      <label>Nombre:</label>
+      <input id="modal-nombre" type="text">
+
+      <label>Precio:</label>
+      <input id="modal-precio" type="number" min="0">
+
+      <label>Stock disponible:</label>
+      <input id="modal-stock" type="number" min="0">
+
+      <label>Categoría:</label>
+      <select id="modal-categoria">
+        <option value="perros">Perros</option>
+        <option value="gatos">Gatos</option>
+        <option value="otros">Otros</option>
+      </select>
+
+      <div class="modal-actions">
+        <button class="btn-save" onclick="guardarCambiosProducto()">Guardar</button>
+        <button class="btn-close" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="modalEliminar" class="modal-overlay">
+  <div class="modal-card-wide" style="flex-direction: column; height: auto; padding: 25px; max-width: 500px;">
+    <h2>Eliminar Producto</h2>
+
+    <label>Selecciona un producto:</label>
+    <select id="select-eliminar" style="padding:10px; border-radius:8px; border:1px solid #ccc;">
+      <% productos.forEach(p => { %>
+        <option value="<%= p._id %>"><%= p.name %> — (<%= p.category %>)</option>
+      <% }) %>
+    </select>
+
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-save" onclick="confirmarEliminar()">Eliminar</button>
+      <button class="btn-close" onclick="cerrarEliminar()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ----------------------------------------------------- -->
+<!-- SCRIPT! COMPLETO, LIMPIO Y ORDENADO -->
+<!-- ----------------------------------------------------- -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // ---------- PANEL LATERAL ----------
+  function showPanel(panelId, event) {
+    if (event) event.preventDefault();
+
+    document.querySelectorAll(".admin-panel section")
+      .forEach(s => s.classList.add("hidden"));
+
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.remove("hidden");
+
+    document.querySelectorAll(".admin-sidebar button")
+      .forEach(btn => btn.classList.remove("active"));
+
+    const labelMap = {
+      "panel-kpi": "Resumen",
+      "panel-citas": "Citas",
+      "panel-reservas": "Reservas",
+      "panel-ventas": "Ventas",
+      "panel-stock": "Inventario",
+      "panel-usuarios": "Usuarios"
+    };
+
+    const btn = Array.from(document.querySelectorAll(".admin-sidebar button"))
+      .find(b => b.innerText.includes(labelMap[panelId]));
+
+    if (btn) btn.classList.add("active");
+  }
+
+  // lo exponemos para que funcione el onclick del sidebar
+window.showPanel = showPanel;
+
+// Detectar si estamos filtrando ventas
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has("fecha") || urlParams.has("metodo")) {
+  showPanel("panel-ventas");   // ⟵ abrir ventas automáticamente
+} else {
+  showPanel("panel-kpi");      // vista normal
+}
+
+
+  // ---------- MENU USUARIO ----------
+  const userBtn = document.querySelector(".user__btn");
+  const userDiv = document.querySelector(".user");
+
+  if (userBtn && userDiv) {
+    userBtn.addEventListener("click", () => userDiv.classList.toggle("open"));
+
+    document.addEventListener("click", (e) => {
+      if (!userDiv.contains(e.target)) {
+        userDiv.classList.remove("open");
+      }
+    });
+  }
+
+  // ---------- MODAL PRODUCTO ----------
+  let productoActualId = null;
+
+  function previewImagen(event) {
+    const file = event.target.files[0];
+    if (file) {
+      document.getElementById("modal-img").src = URL.createObjectURL(file);
+    }
+  }
+  window.previewImagen = previewImagen; // para el onchange del input file
+
+function cerrarModal() {
+  document.getElementById("modalProducto").classList.remove("show");
+}
+
+  window.cerrarModal = cerrarModal;
+
+function nuevoProducto() {
+  productoActualId = null;
+
+  document.getElementById("modal-titulo").innerText = "Nuevo Producto";
+  document.getElementById("modal-nombre").value = "";
+  document.getElementById("modal-precio").value = "";
+  document.getElementById("modal-stock").value = "";
+  document.getElementById("modal-categoria").value = "otros";
+  document.getElementById("modal-img").src = "/img/default-product.png";
+  document.getElementById("modal-file").value = "";
+
+  document.getElementById("modalProducto").classList.add("show");
+}
+
+  window.nuevoProducto = nuevoProducto; // para el botón "➕ Nuevo Producto"
+
+function editarProducto(id, nombre, precio, stock, img, categoria) {
+  productoActualId = id;
+
+  document.getElementById("modal-titulo").innerText = "Editar Producto";
+  document.getElementById("modal-nombre").value = nombre;
+  document.getElementById("modal-precio").value = precio;
+  document.getElementById("modal-stock").value = stock;
+  document.getElementById("modal-categoria").value = categoria || "otros";
+  document.getElementById("modal-img").src = img || "/img/default-product.png";
+  document.getElementById("modal-file").value = "";
+
+  document.getElementById("modalProducto").classList.add("show");
+}
+
+
+
+  async function guardarCambiosProducto() {
+    const formData = new FormData();
+    formData.append("name", document.getElementById("modal-nombre").value);
+    formData.append("price", document.getElementById("modal-precio").value);
+    formData.append("stock", document.getElementById("modal-stock").value);
+    formData.append("category", document.getElementById("modal-categoria").value);
+
+    const file = document.getElementById("modal-file").files[0];
+    if (file) formData.append("img", file);
+
+    let url;
+    if (productoActualId) {
+      url = `/admin/producto/${productoActualId}`;
+    } else {
+      url = `/admin/producto/nuevo`;
+    }
+
+    const res = await fetch(url, { method: "POST", body: formData });
+
+    if (res.ok) {
+      alert("Guardado correctamente");
+      location.reload();
+    } else {
+      alert("Error al guardar los datos");
+    }
+  }
+  window.guardarCambiosProducto = guardarCambiosProducto;
+
+  // ---------- Asignar eventos a los botones "Modificar" ----------
+  document.querySelectorAll(".btn-editar-producto").forEach(btn => {
+    btn.addEventListener("click", () => {
+      editarProducto(
+        btn.dataset.id,
+        btn.dataset.nombre,
+        btn.dataset.precio,
+        btn.dataset.stock,
+        btn.dataset.img,
+        btn.dataset.categoria
+      );
+    });
+  });
+  function abrirEliminarProducto() {
+    document.getElementById("modalEliminar").classList.add("show");
+  }
+
+  function cerrarEliminar() {
+    document.getElementById("modalEliminar").classList.remove("show");
+  }
+
+  async function confirmarEliminar() {
+    const id = document.getElementById("select-eliminar").value;
+
+    if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
+
+    const res = await fetch(`/admin/producto/${id}`, {
+      method: "DELETE"
+    });
+
+    if (res.ok) {
+      alert("Producto eliminado");
+      location.reload();
+    } else {
+      alert("Error al eliminar el producto");
+    }
+  }
+
+  // 👇 AÑADE ESTO:
+  window.abrirEliminarProducto = abrirEliminarProducto;
+  window.cerrarEliminar = cerrarEliminar;
+  window.confirmarEliminar = confirmarEliminar;
+function abrirEliminarUsuario(id, nombre) {
+  usuarioEliminarId = id;
+  document.getElementById("modalEliminarTexto").innerHTML =
+    `¿Seguro que deseas eliminar a: <strong>${nombre}</strong>?`;
+
+  const modal = document.getElementById("modalEliminarUsuario");
+  modal.classList.remove("hidden");
+  modal.classList.add("show");
+}
+
+function cerrarEliminarUsuario() {
+  const modal = document.getElementById("modalEliminarUsuario");
+  modal.classList.remove("show");
+  modal.classList.add("hidden");
+}
+
+async function confirmarEliminarUsuario() {
+  const res = await fetch(`/admin/usuario/${usuarioEliminarId}`, { method: "DELETE" });
+
+  if (res.ok) {
+    alert("Usuario eliminado");
+    window.location.reload();
+  } else {
+    alert("Error al eliminar usuario");
+  }
+}
+
+/* 👇 AÑADE ESTO 👇 */
+window.abrirEliminarUsuario = abrirEliminarUsuario;
+window.cerrarEliminarUsuario = cerrarEliminarUsuario;
+window.confirmarEliminarUsuario = confirmarEliminarUsuario;
+let usuarioEditarId = null;
+
+// ABRIR MODAL
+function abrirEditarUsuario(id, nombre, email, rol) {
+  usuarioEditarId = id;
+
+  document.getElementById("edit-user-nombre").value = nombre;
+  document.getElementById("edit-user-email").value = email;
+  document.getElementById("edit-user-rol").value = rol;
+
+  const modal = document.getElementById("modalEditarUsuario");
+  modal.classList.add("show");
+}
+
+// CERRAR MODAL
+function cerrarEditarUsuario() {
+  const modal = document.getElementById("modalEditarUsuario");
+  modal.classList.remove("show");
+}
+
+// GUARDAR CAMBIOS
+async function guardarCambiosUsuario() {
+  const nombre = document.getElementById("edit-user-nombre").value;
+  const rol = document.getElementById("edit-user-rol").value;
+
+  const res = await fetch(`/admin/usuario/${usuarioEditarId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre, rol })
+  });
+
+  if (res.ok) {
+    window.location.reload();
+  } else {
+    alert("Error al actualizar usuario");
+  }
+}
+
+// Exponer a window
+window.abrirEditarUsuario = abrirEditarUsuario;
+window.cerrarEditarUsuario = cerrarEditarUsuario;
+window.guardarCambiosUsuario = guardarCambiosUsuario;
+
+// ---------- Asignar eventos a los botones "Modificar" ----------
+document.querySelectorAll(".btn-editar-producto").forEach(btn => {
+  btn.addEventListener("click", () => {
+    editarProducto(
+      btn.dataset.id,
+      btn.dataset.nombre,
+      btn.dataset.precio,
+      btn.dataset.stock,
+      btn.dataset.img,
+      btn.dataset.categoria
+    );
+  });
+});
+
+// ---------- BOTONES ELIMINAR USUARIO ----------
+document.querySelectorAll(".btn-eliminar-usuario").forEach(btn => {
+  btn.addEventListener("click", () => {
+    abrirEliminarUsuario(btn.dataset.id, btn.dataset.nombre);
+  });
+});
+document.querySelectorAll(".btn-editar-usuario").forEach(btn => {
+  btn.addEventListener("click", () => {
+    abrirEditarUsuario(
+      btn.dataset.id,
+      btn.dataset.nombre,
+      btn.dataset.email,
+      btn.dataset.rol
+    );
+  });
+});
+
+}); // fin DOMContentLoaded
+</script>
+
+
+</body>
+</html>

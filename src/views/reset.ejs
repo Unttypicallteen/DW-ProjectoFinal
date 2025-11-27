@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Restablecer contraseña | VetCare 🐾</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/estilo.css" />
+
+  <style>
+    .reset-container {
+      display: flex;
+      border-radius: 30px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      margin: 40px auto;
+      max-width: 1100px;
+    }
+
+    .reset-left {
+      flex: 1;
+      background: #f9f2e4;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reset-left img {
+      width: 80%;
+      border-radius: 20px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+    }
+
+    .reset-right {
+      flex: 1;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .reset-title {
+      font-size: 28px;
+      color: #8a5a2f;
+      font-weight: 700;
+    }
+
+    .reset-desc {
+      color: #6a6a6a;
+      margin-bottom: 30px;
+    }
+
+    .reset-form input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .btn-reset-send, .btn-login {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #8a5a2f;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-reset-send:hover, .btn-login:hover {
+      background: #6b451f;
+    }
+
+    .success-box {
+      margin-top: 30px;
+      padding: 25px;
+      background: #e6ffee;
+      border-left: 5px solid #00a665;
+      border-radius: 10px;
+    }
+
+    .success-title {
+      font-size: 24px;
+      color: #2c8a55;
+      font-weight: bold;
+    }
+
+    .success-text {
+      font-size: 15px;
+      margin-top: 8px;
+      color: #444;
+    }
+  </style>
+</head>
+
+<body class="page-index">
+
+  <main class="reset-container">
+
+    <!-- IZQUIERDA (IMÁGENES) -->
+    <section class="reset-left">
+      <img src="/img/reset1.png" alt="">
+      <img src="/img/reset2.png" alt="">
+    </section>
+
+    <!-- DERECHA -->
+    <section class="reset-right">
+
+      <!-- SI LA CONTRASEÑA YA SE CAMBIÓ -->
+      <% if (done) { %>
+
+        <img src="/img/logo.jpg" width="90" style="border-radius:12px; margin-bottom:20px;">
+        <h2 class="success-title">Contraseña actualizada</h2>
+
+        <p class="success-text">Tu contraseña se ha cambiado correctamente.</p>
+
+        <a href="/" class="btn-login" style="margin-top:25px; text-decoration:none; text-align:center;">
+          Iniciar sesión
+        </a>
+
+      <% } else { %>
+
+        <!-- FORMULARIO PARA INGRESAR NUEVA CONTRASEÑA -->
+        <img src="/img/logo.jpg" width="90" style="border-radius:12px; margin-bottom:20px;">
+        
+        <h2 class="reset-title">Restablecer contraseña</h2>
+        <p class="reset-desc">Ingresa tu nueva contraseña para continuar.</p>
+
+        <form class="reset-form" action="/reset/<%= token %>" method="post">
+
+          <input type="password" name="password" placeholder="Nueva contraseña" required />
+
+          <button type="submit" class="btn-reset-send">Guardar nueva contraseña</button>
+        </form>
+
+      <% } %>
+
+    </section>
+
+  </main>
+
+</body>
+</html>

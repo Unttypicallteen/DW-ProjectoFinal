@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editar perfil · NOVAPET</title>
+  <link rel="stylesheet" href="/css/estilo.css" />
+
+  <style>
+    /* ojito */
+    .eye-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .input-wrapper-edit {
+      position: relative;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body class="page-dashboard">
+
+  <!-- HEADER -->
+  <header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+
+        <button class="user__btn" id="userMenuBtn">
+          <%= userName %>
+          <svg width="14" height="14">
+            <path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2" />
+          </svg>
+        </button>
+
+        <nav class="user__menu" id="userMenu">
+          <a href="/perfil/info">Ver perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="perfil-edit">
+    <h1 class="perfil-edit__title">Edita tu información personal</h1>
+
+    <section class="perfil-edit__card">
+
+      <!-- FOTO DEL USUARIO -->
+      <figure class="perfil-edit__media">
+        <img src="<%= user.avatar %>" alt="<%= user.nombre %>">
+      </figure>
+
+      <!-- FORMULARIO -->
+      <form class="perfil-edit__form" id="formEditar" action="/perfil/editar" method="post">
+
+        <!-- NOMBRE -->
+        <label class="perfil-edit__label">Nombre</label>
+        <input class="perfil-edit__input" type="text" name="nombre" 
+               value="<%= user.nombre %>" required>
+
+        <!-- CORREO -->
+        <label class="perfil-edit__label">Correo</label>
+        <input class="perfil-edit__input" type="email" name="email"
+               placeholder="nombre@dominio.com" autocomplete="off">
+
+        <!-- TELÉFONO -->
+        <label class="perfil-edit__label">Teléfono</label>
+        <input class="perfil-edit__input" type="tel" name="tel"
+               placeholder="+57 300 000 0000" autocomplete="off">
+
+        <!-- CONTRASEÑA -->
+        <label class="perfil-edit__label">Nueva contraseña</label>
+        <div class="input-wrapper-edit">
+          <input class="perfil-edit__input" id="pass1" type="password" name="pass" 
+                 placeholder="••••••••" autocomplete="new-password">
+          <span id="eye1" class="eye-btn">👁️</span>
+        </div>
+
+        <!-- CONFIRMAR -->
+        <label class="perfil-edit__label">Confirmar contraseña</label>
+        <div class="input-wrapper-edit">
+          <input class="perfil-edit__input" id="pass2" type="password"
+                 placeholder="Repite la contraseña" autocomplete="new-password">
+          <span id="eye2" class="eye-btn">👁️</span>
+        </div>
+
+        <p id="passMsg" class="pass-check"></p>
+
+        <button type="submit" id="btnSubmit" class="perfil-edit__cta" disabled>
+          Guardar cambios
+        </button>
+
+      </form>
+    </section>
+
+    <div id="toast" class="toast"></div>
+  </main>
+
+  <!-- OJITOS -->
+  <script>
+    function toggleEye(inputId, eyeId) {
+      const input = document.getElementById(inputId);
+      const eye   = document.getElementById(eyeId);
+
+      if (input.type === "password") {
+        input.type = "text";
+        eye.textContent = "🙈";
+      } else {
+        input.type = "password";
+        eye.textContent = "👁️";
+      }
+    }
+
+    document.getElementById("eye1").onclick = () => toggleEye("pass1", "eye1");
+    document.getElementById("eye2").onclick = () => toggleEye("pass2", "eye2");
+  </script>
+
+  <!-- VALIDACIÓN + AJAX -->
+  <script>
+    const p1 = document.getElementById("pass1");
+    const p2 = document.getElementById("pass2");
+    const msg = document.getElementById("passMsg");
+    const btn = document.getElementById("btnSubmit");
+
+    function validar() {
+      if (!p1.value && !p2.value) { btn.disabled = false; msg.textContent = ""; return; }
+
+      if (p1.value !== p2.value) {
+        msg.textContent = "Las contraseñas no coinciden";
+        msg.style.color = "#c0392b";
+        btn.disabled = true;
+      } else if (p1.value.length < 6) {
+        msg.textContent = "Debe tener mínimo 6 caracteres";
+        msg.style.color = "#c0392b";
+        btn.disabled = true;
+      } else {
+        msg.textContent = "Contraseña válida ✓";
+        msg.style.color = "#27ae60";
+        btn.disabled = false;
+      }
+    }
+
+    p1.addEventListener("input", validar);
+    p2.addEventListener("input", validar);
+
+    // AJAX envío
+    document.getElementById('formEditar').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fd = new URLSearchParams(new FormData(e.target));
+      
+      const resp = await fetch(e.target.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd
+      });
+
+      const data = await resp.json();
+      const toast = document.getElementById("toast");
+
+      toast.textContent = data.message;
+      toast.style.background = data.ok ? "#e7f8ed" : "#ffe4e4";
+      toast.style.color = data.ok ? "#276738" : "#b20000";
+      toast.classList.add("toast--show");
+
+      setTimeout(() => {
+        toast.classList.remove("toast--show");
+        if (data.ok) window.location.href = "/perfil/info";
+      }, 1800);
+    });
+  </script>
+
+</body>
+</html>

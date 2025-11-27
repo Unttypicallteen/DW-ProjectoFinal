@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cita · NOVAPET</title>
+
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS Global Unificado -->
+  <link rel="stylesheet" href="/css/estilo.css" />
+</head>
+
+<body class="page-dashboard">
+
+  <!-- =========================================================
+       HEADER UNIFICADO
+  ========================================================== -->
+<header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard" aria-label="Inicio">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+        <button class="user__btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+          <%= userName %>
+          <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <nav class="user__menu" id="userMenu" aria-label="Menú de usuario">
+                    <a href="/perfil">Mi perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+  
+  <!-- =========================================================
+       CONTENIDO DE CITA
+  ========================================================== -->
+  <main class="cita">
+
+    <h1 class="cita__title"><%= h1 %></h1>
+
+    <section class="cita__wrap">
+
+      <!-- Imagen -->
+      <figure class="cita__hero">
+        <img src="<%= hero %>" alt="Ilustración cita" />
+      </figure>
+
+      <!-- Formulario -->
+      <form class="cita__form" action="/cita/reservar" method="post" id="formCita">
+        
+        <input type="hidden" name="tipo" value="<%= tipo %>">
+
+        <!-- Especie -->
+        <label class="cita__label">Selecciona la especie</label>
+        <select class="cita__select" name="especie" required>
+          <option value="" disabled selected>Selecciona la especie</option>
+          <% especies.forEach(e => { %>
+            <option value="<%= e %>"><%= e %></option>
+          <% }) %>
+        </select>
+
+        <!-- Tipo de servicio -->
+        <label class="cita__label"><%= labelTipo %></label>
+        <select class="cita__select" name="servicio" required>
+          <option value="" disabled selected><%= labelTipo %></option>
+          <% opcionesTipo.forEach(o => { %>
+            <option value="<%= o %>"><%= o %></option>
+          <% }) %>
+        </select>
+
+        <!-- Día y Hora -->
+        <div class="cita__row">
+          <div class="cita__col">
+            <label class="cita__label">Día</label>
+<select class="cita__select" name="dia" id="selectDia" required>
+    <option value="" disabled selected>Selecciona el día</option>
+    <% fechasDisponibles.forEach(f => { %>
+        <option value="<%= f %>"><%= f %></option>
+    <% }) %>
+</select>          </div>
+
+          <div class="cita__col">
+            <label class="cita__label">Hora</label>
+            <select class="cita__select" name="hora" required>
+              <option value="" disabled selected>Selecciona la hora</option>
+              <% horas.forEach(h => { %>
+                <option value="<%= h %>"><%= h %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botón -->
+        <button class="btn btn--primary cita__cta" type="submit">Haz tu reserva</button>
+
+        <!-- Recomendaciones -->
+        <aside class="cita__note">
+          <strong>Recomendaciones</strong>
+          <p><%= recomendaciones %></p>
+        </aside>
+
+      </form>
+    </section>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+  </main>
+
+  <!-- =========================================================
+       SCRIPTS
+  ========================================================== -->
+<script>
+/* ========================
+   MENÚ
+========================= */
+(function () {
+  const btn = document.getElementById('userMenuBtn');
+  const menu = document.getElementById('userMenu');
+  const user = btn?.closest('.user');
+  if (!btn || !menu || !user) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = user.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+  });
+
+  document.addEventListener('click', () => {
+    user.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  });
+})();
+
+/* ========================
+   TOAST
+========================= */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('toast--show');
+  setTimeout(() => t.classList.remove('toast--show'), 2500);
+}
+
+/* ========================
+   CONTROL DE FECHAS
+========================= */
+(function initFecha() {
+  const inputFecha = document.querySelector('input[name="dia"]');
+  if (!inputFecha) return;
+
+  const hoy = new Date();
+  hoy.setDate(hoy.getDate() + 3);   // mínimo +3 días
+
+  const max = new Date(hoy);
+  max.setDate(max.getDate() + 7);   // máximo +7 días desde el mínimo
+
+  const toStr = d => d.toISOString().split("T")[0];
+
+  inputFecha.min = toStr(hoy);
+  inputFecha.max = toStr(max);
+})();
+
+/* ========================
+   CARGAR HORAS DISPONIBLES
+========================= */
+document.querySelector('input[name="dia"]')?.addEventListener('change', async (e)=>{
+  const dia = e.target.value;
+  const tipo = document.querySelector('input[name="tipo"]').value;
+
+  const selectHora = document.querySelector('select[name="hora"]');
+  selectHora.innerHTML = '<option disabled selected>Cargando...</option>';
+
+  const resp = await fetch(`/cita/horas-disponibles?dia=${dia}&tipo=${tipo}`);
+  const data = await resp.json();
+
+  selectHora.innerHTML = '';
+  if (!data.horas || data.horas.length === 0){
+    selectHora.innerHTML = '<option disabled>No hay horas disponibles</option>';
+    return;
+  }
+
+  data.horas.forEach(h => {
+    const op = document.createElement('option');
+    op.value = h;
+    op.textContent = h;
+    selectHora.appendChild(op);
+  });
+});
+
+/* ========================
+   ENVIAR FORMULARIO
+========================= */
+document.getElementById('formCita')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  const fd = new FormData(e.target);
+
+  const resp = await fetch('/cita/reservar', {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams(fd)
+  });
+
+  const data = await resp.json();
+
+  if(!data.ok){
+    toast(data.message || '⚠️ No se pudo reservar');
+    return;
+  }
+
+  toast(data.message);
+  e.target.reset();
+});
+</script>
+
+
+</body>
+</html>

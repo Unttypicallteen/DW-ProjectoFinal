@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recuperar Contraseña · VetCare</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/estilo.css" />
+</head>
+
+<body class="page-forgot">
+  <main class="forgot-layout">
+
+    <!-- IZQUIERDA -->
+    <section class="forgot-illustrations">
+      <img src="/img/forgot1.jpg" class="forgot-art" />
+      <img src="/img/forgot2.jpg" class="forgot-art" />
+    </section>
+
+    <!-- DERECHA -->
+    <section class="forgot-panel">
+      <div class="forgot-card">
+
+        <img src="/img/logo.jpg" class="forgot-logo" />
+        <h2 class="forgot-title">¿Olvidaste tu contraseña?</h2>
+
+        <p class="forgot-subtitle">
+          Ingresa tu correo y te enviaremos un enlace para restablecerla.
+        </p>
+
+        <!-- MENSAJE DE ERROR -->
+        <% if (error) { %>
+          <div class="alert-error">
+            ❌ <%= error %>
+          </div>
+        <% } %>
+
+        <!-- MENSAJE DE ENVÍO EXITOSO -->
+        <% if (sent) { %>
+          <div class="alert-success">
+            ✔ Se ha enviado un enlace a <strong><%= email %></strong>.  
+            Revisa tu bandeja de entrada.
+          </div>
+        <% } %>
+
+        <form method="POST" action="/forgot">
+          <div class="field">
+            <label for="email">Correo electrónico</label>
+            <input 
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Ejemplo: maria@email.com"
+              value="<%= email %>"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn-login">Enviar enlace</button>
+
+          <div class="forgot-links">
+            <a href="/">← Volver al inicio</a>
+          </div>
+        </form>
+
+      </div>
+    </section>
+  </main>
+</body>
+</html>

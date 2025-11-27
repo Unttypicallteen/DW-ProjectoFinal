@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mi perfil · NOVAPET</title>
+  <link rel="stylesheet" href="/css/estilo.css" />
+</head>
+
+<body class="page-dashboard">
+
+  <!-- HEADER -->
+  <header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard">
+        <img src="/img/logo.jpg" alt="NOVAPET">
+      </a>
+
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+
+        <button class="user__btn" id="userMenuBtn">
+          <%= userName %>
+          <svg width="14" height="14"><path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+
+        <nav class="user__menu" id="userMenu">
+          <a href="/perfil">Menú de perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="perfil-info">
+
+    <h1 class="perfil-info__title">Mi perfil</h1>
+
+    <!-- TARJETA -->
+    <section class="perfil-info__card">
+
+      <!-- AVATAR -->
+      <div class="perfil-info__avatar">
+        <img src="<%= user.avatar %>" alt="<%= user.nombre %>">
+      </div>
+
+      <!-- DATOS -->
+      <div class="perfil-info__data">
+        <h2 class="perfil-info__name"><%= user.nombre %></h2>
+
+        <ul class="perfil-info__list">
+          <li><strong>Correo:</strong> <%= user.email %></li>
+          <li><strong>Teléfono:</strong> <%= user.telefono || "Sin registrar" %></li>
+<li><strong>Cuenta creada:</strong> <%= fechaCreada %></li>
+        </ul>
+
+        <!-- BOTÓN EDITAR -->
+      <div class="perfil-info__edit-wrapper">
+        <a href="/perfil/editar" class="perfil-info__edit">Editar perfil</a>
+      </div>
+<hr style="margin:25px 0;">
+
+<form action="/perfil/avatar" method="POST" enctype="multipart/form-data" class="perfil-info__avatar-form">
+
+  <div class="avatar-upload-container">
+    <label class="avatar-btn" for="avatarInput">Seleccionar imagen</label>
+    <input id="avatarInput" type="file" name="avatar" accept="image/*" required>
+    <span id="fileName" class="file-name-text">No has seleccionado ninguna imagen</span>
+  </div>
+
+  <!-- BOTÓN CENTRADO -->
+  <div class="perfil-info__edit-wrapper" style="margin-top:15px;">
+    <button class="perfil-info__edit">Subir nueva foto</button>
+  </div>
+
+</form>
+
+
+      </div>
+
+      <!-- ESTADÍSTICAS -->
+      <div class="perfil-info__stats-mini">
+        <h3 class="stats-title">Actividad</h3>
+
+        <div class="stats-box">
+          <p class="stat-label">Reservas activas</p>
+          <p class="stat-number"><%= reservasActivas %></p>
+        </div>
+
+        <div class="stats-box">
+          <p class="stat-label">Citas activas</p>
+          <p class="stat-number"><%= citasActivas %></p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- SCRIPT -->
+  <script>
+    (function(){
+      const btn=document.getElementById("userMenuBtn");
+      const user=btn.closest(".user");
+
+      btn.addEventListener("click",e=>{
+        e.stopPropagation();
+        user.classList.toggle("open");
+      });
+
+      document.addEventListener("click",e=>{
+        if(!user.contains(e.target)) user.classList.remove("open");
+      });
+    })();
+  </script>
+<script>
+  const input = document.getElementById("avatarInput");
+  const fileName = document.getElementById("fileName");
+
+  input.addEventListener("change", () => {
+    fileName.textContent = input.files.length > 0 
+      ? input.files[0].name 
+      : "No has seleccionado ninguna imagen";
+  });
+</script>
+
+</body>
+</html>

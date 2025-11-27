@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registrar Compra · Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/estilo.css" />
+
+  <style>
+    .page-compras {
+      width: 92%;
+      max-width: 1100px;
+      margin: 30px auto 60px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 26px 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .section-block {
+      border: 1px solid #efe6d8;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      background: #fffbf6;
+    }
+
+    .section-block h2 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .inline {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d7c9b4;
+      min-width: 220px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--brand-dark);
+    }
+
+    .grid-columns {
+      display: grid;
+      grid-template-columns: 1.1fr 1.1fr;
+      gap: 16px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e5d6c1;
+      font-size: 14px;
+    }
+
+    .item-row:last-child {
+      border-bottom: none;
+    }
+
+    .item-main {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item-secondary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-secondary input[type="number"] {
+      width: 70px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid #d7c9b4;
+    }
+
+    .tag-stock {
+      font-size: 12px;
+      color: #805424;
+    }
+
+    .section-resumen {
+      margin-top: 10px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f6efe3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .total-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--brand-dark);
+    }
+
+    .metodos-pago label {
+      margin-right: 14px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body class="page-dashboard">
+
+<header class="dash-top">
+  <div class="dash-top__inner">
+    <div class="dash-brand">
+      <a class="dash-brand" href="/admin" aria-label="Inicio">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+    </div>
+
+    <div class="user">
+      <span class="user__hello">Hola,</span>
+      <button class="user__btn"><%= userName %> ▾</button>
+      <div class="user__menu">
+        <a href="/admin">Volver al panel</a>
+        <a href="/logout">Cerrar Sesión</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<h1 class="dash-title" style="text-align:center; margin-top:35px;">Registrar Compra</h1>
+
+<div class="page-compras">
+
+  <!-- 1. BUSCAR CLIENTE -->
+  <div class="section-block">
+    <h2>1. Buscar cliente</h2>
+    <div class="inline">
+      <input type="text" id="input-nombre" placeholder="Nombre del cliente">
+      <button class="btn btn-primary" id="btn-buscar">Buscar</button>
+      <small id="texto-usuario" style="margin-left:8px; font-size:13px; color:#555;">
+        Si no se encuentra → la venta quedará como <strong>"Compra en tienda"</strong>.
+      </small>
+    </div>
+  </div>
+
+  <!-- 2. RESERVAS + PRODUCTOS + SERVICIOS -->
+  <div class="grid-columns">
+
+    <!-- RESERVAS -->
+    <div class="section-block">
+      <h2>2. Reservas activas del cliente</h2>
+      <div id="contenedor-reservas">
+        <p style="font-size:14px; color:#777;">Busca un cliente para ver sus reservas activas.</p>
+      </div>
+    </div>
+
+    <!-- PRODUCTOS Y SERVICIOS -->
+    <div class="section-block">
+      <h2>3. Productos y servicios</h2>
+
+      <h3 style="font-size:15px; margin-bottom:6px;">Productos</h3>
+      <div id="contenedor-productos"></div>
+
+      <hr style="margin:10px 0; border-color:#e5d6c1;">
+
+      <h3 style="font-size:15px; margin-bottom:6px;">Servicios</h3>
+      <div id="contenedor-servicios"></div>
+    </div>
+  </div>
+
+  <!-- 4. RESUMEN Y PAGO -->
+  <div class="section-block">
+    <h2>4. Resumen y pago</h2>
+
+    <div class="section-resumen">
+      <div>
+        <div>Cliente: <span id="resumen-cliente"><em>Compra en tienda</em></span></div>
+        <div class="total-text">
+          Total: $<span id="total-valor" data-total-numero="0">0</span>
+        </div>
+      </div>
+
+      <div class="metodos-pago">
+        <strong>Método de pago:</strong><br>
+        <label><input type="radio" name="metodoPago" value="efectivo" checked> Efectivo</label>
+        <label><input type="radio" name="metodoPago" value="nequi"> Nequi</label>
+        <label><input type="radio" name="metodoPago" value="tarjeta"> Tarjeta</label>
+      </div>
+
+      <div>
+        <button class="btn btn-primary" id="btn-registrar">Registrar Compra</button>
+      </div>
+    </div>
+
+    <small style="font-size:12px; color:#555;">
+      La fecha de la compra se guarda automáticamente con la fecha y hora actuales.
+    </small>
+  </div>
+</div>
+
+<script>
+  // === ESTADO GLOBAL EN ESTA VISTA ===
+  let estado = {
+    usuario: null,
+    reservas: [],
+    productos: [],
+    servicios: []
+  };
+
+  /* ==== MENU USUARIO (DESPLEGABLE) ==== */
+  const userBtn = document.querySelector(".user__btn");
+  const userDiv = document.querySelector(".user");
+  userBtn.addEventListener("click", () => userDiv.classList.toggle("open"));
+  document.addEventListener("click", (e) => {
+    if (!userDiv.contains(e.target)) userDiv.classList.remove("open");
+  });
+
+  /* ==== 1. BUSCAR CLIENTE ==== */
+  const inputNombre = document.getElementById("input-nombre");
+  const btnBuscar = document.getElementById("btn-buscar");
+  const textoUsuario = document.getElementById("texto-usuario");
+  const resumenCliente = document.getElementById("resumen-cliente");
+
+  btnBuscar.addEventListener("click", async () => {
+    const nombreUsuario = inputNombre.value.trim();
+    if (!nombreUsuario) {
+      alert("Ingresa un nombre para buscar.");
+      return;
+    }
+
+    const res = await fetch("/admin/compras/buscarUsuario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombreUsuario })
+    });
+
+    if (!res.ok) {
+      alert("Error buscando usuario.");
+      return;
+    }
+
+    const data = await res.json();
+    estado.usuario = data.usuario;
+    estado.reservas = data.reservas || [];
+    estado.productos = data.productos || [];
+    estado.servicios = data.servicios || [];
+
+    // Texto de cliente
+    if (estado.usuario) {
+      textoUsuario.innerHTML = `Cliente encontrado: <strong>${estado.usuario.nombre}</strong>`;
+      resumenCliente.textContent = estado.usuario.nombre;
+    } else {
+      textoUsuario.innerHTML = `No se encontró el cliente. Se registrará como <strong>"Compra en tienda"</strong>.`;
+      resumenCliente.innerHTML = `<em>Compra en tienda</em>`;
+    }
+
+    renderReservas();
+    renderProductos();
+    renderServicios();
+    recalcularTotal();
+  });
+
+  /* ==== 2. RENDER RESERVAS ==== */
+  const contenedorReservas = document.getElementById("contenedor-reservas");
+
+  function renderReservas() {
+    contenedorReservas.innerHTML = "";
+
+    if (!estado.usuario) {
+      contenedorReservas.innerHTML = `<p style="font-size:14px; color:#777;">No hay reservas porque el cliente no existe en el sistema.</p>`;
+      return;
+    }
+
+    if (!estado.reservas.length) {
+      contenedorReservas.innerHTML = `<p style="font-size:14px; color:#777;">El cliente no tiene reservas activas.</p>`;
+      return;
+    }
+
+    estado.reservas.forEach(r => {
+      const prod = r.producto?.id;
+      if (!prod) return;
+
+      const totalReserva = (prod.price || 0) * (r.cantidad || 0);
+
+      const row = document.createElement("div");
+      row.className = "item-row";
+
+      row.innerHTML = `
+        <div class="item-main">
+          <strong>${prod.name}</strong>
+          <span style="font-size:13px;">
+            Cantidad reservada: <strong>${r.cantidad}</strong> · 
+            $${prod.price} c/u
+          </span>
+        </div>
+        <div class="item-secondary">
+          <span><strong>$${totalReserva}</strong></span>
+          <label style="font-size:13px;">
+            <input type="checkbox" 
+                   class="chk-reserva"
+                   value="${r._id}"
+                   data-total="${totalReserva}">
+            Entregar
+          </label>
+        </div>
+      `;
+
+      contenedorReservas.appendChild(row);
+    });
+
+    // Escuchar cambios para recalcular total
+    contenedorReservas.querySelectorAll(".chk-reserva").forEach(chk => {
+      chk.addEventListener("change", recalcularTotal);
+    });
+  }
+
+  /* ==== 3. RENDER PRODUCTOS ==== */
+  const contenedorProductos = document.getElementById("contenedor-productos");
+
+  function renderProductos() {
+    contenedorProductos.innerHTML = "";
+
+    if (!estado.productos.length) {
+      contenedorProductos.innerHTML = `<p style="font-size:14px; color:#777;">No hay productos en inventario.</p>`;
+      return;
+    }
+
+    estado.productos.forEach(p => {
+      const row = document.createElement("div");
+      row.className = "item-row";
+      row.dataset.id = p._id;
+      row.dataset.precio = p.price;
+      row.dataset.stock = p.stock;
+
+      row.innerHTML = `
+        <div class="item-main">
+          <strong>${p.name}</strong>
+          <span style="font-size:13px;">$${p.price}</span>
+          <span class="tag-stock">Stock: ${p.stock}</span>
+        </div>
+        <div class="item-secondary">
+          <span style="font-size:13px;">Cant.</span>
+          <input type="number" class="input-cantidad-producto" min="0" value="0">
+        </div>
+      `;
+
+      contenedorProductos.appendChild(row);
+    });
+
+    contenedorProductos.querySelectorAll(".input-cantidad-producto").forEach(input => {
+      input.addEventListener("input", (e) => {
+        const row = e.target.closest(".item-row");
+        const stock = Number(row.dataset.stock || 0);
+        let val = Number(e.target.value || 0);
+
+        if (val < 0) val = 0;
+        if (val > stock) {
+          alert(`Solo hay ${stock} unidades en stock.`);
+          val = stock;
+        }
+        e.target.value = val;
+        recalcularTotal();
+      });
+    });
+  }
+
+  /* ==== 4. RENDER SERVICIOS ==== */
+  const contenedorServicios = document.getElementById("contenedor-servicios");
+
+  function renderServicios() {
+    contenedorServicios.innerHTML = "";
+
+    if (!estado.servicios.length) {
+      contenedorServicios.innerHTML = `<p style="font-size:14px; color:#777;">No hay servicios configurados.</p>`;
+      return;
+    }
+
+    estado.servicios.forEach(s => {
+      const row = document.createElement("div");
+      row.className = "item-row";
+
+      row.innerHTML = `
+        <div class="item-main">
+          <strong>${s.nombre}</strong>
+          <span style="font-size:13px;">$${s.precio}</span>
+        </div>
+        <div class="item-secondary">
+          <label style="font-size:13px;">
+            <input type="checkbox"
+                   class="chk-servicio"
+                   value="${s.id}"
+                   data-nombre="${s.nombre}"
+                   data-precio="${s.precio}">
+            Agregar
+          </label>
+        </div>
+      `;
+
+      contenedorServicios.appendChild(row);
+    });
+
+    contenedorServicios.querySelectorAll(".chk-servicio").forEach(chk => {
+      chk.addEventListener("change", recalcularTotal);
+    });
+  }
+
+  /* ==== 5. RECALCULAR TOTAL ==== */
+  const totalSpan = document.getElementById("total-valor");
+
+  function recalcularTotal() {
+    let total = 0;
+
+    // Reservas seleccionadas
+    document.querySelectorAll(".chk-reserva:checked").forEach(chk => {
+      total += Number(chk.dataset.total || 0);
+    });
+
+    // Productos (cantidad * precio)
+    document.querySelectorAll("#contenedor-productos .item-row").forEach(row => {
+      const precio = Number(row.dataset.precio || 0);
+      const input = row.querySelector(".input-cantidad-producto");
+      const cantidad = Number(input?.value || 0);
+      if (cantidad > 0) {
+        total += precio * cantidad;
+      }
+    });
+
+    // Servicios
+    document.querySelectorAll(".chk-servicio:checked").forEach(chk => {
+      total += Number(chk.dataset.precio || 0);
+    });
+
+    totalSpan.textContent = total;
+    totalSpan.dataset.totalNumero = total;
+  }
+
+  /* ==== 6. REGISTRAR COMPRA ==== */
+  const btnRegistrar = document.getElementById("btn-registrar");
+
+  btnRegistrar.addEventListener("click", async () => {
+    const total = Number(totalSpan.dataset.totalNumero || 0);
+    if (total <= 0) {
+      alert("El total es 0. Selecciona al menos un producto, reserva o servicio.");
+      return;
+    }
+
+    const metodoPago = document.querySelector('input[name="metodoPago"]:checked')?.value;
+    if (!metodoPago) {
+      alert("Selecciona un método de pago.");
+      return;
+    }
+
+    // Reservas seleccionadas
+    const reservasSeleccionadas = Array.from(
+      document.querySelectorAll(".chk-reserva:checked")
+    ).map(chk => chk.value);
+
+    // Productos seleccionados
+    const productosSeleccionados = [];
+    document.querySelectorAll("#contenedor-productos .item-row").forEach(row => {
+      const id = row.dataset.id;
+      const input = row.querySelector(".input-cantidad-producto");
+      const cantidad = Number(input?.value || 0);
+      if (cantidad > 0) {
+        productosSeleccionados.push({ id, cantidad });
+      }
+    });
+
+    // Servicios seleccionados
+    const serviciosSeleccionados = Array.from(
+      document.querySelectorAll(".chk-servicio:checked")
+    ).map(chk => ({
+      id: chk.value,
+      nombre: chk.dataset.nombre,
+      precio: Number(chk.dataset.precio || 0)
+    }));
+
+    const body = {
+      usuarioId: estado.usuario ? estado.usuario._id : null,
+      reservasSeleccionadas,
+      productosSeleccionados,
+      serviciosSeleccionados,
+      metodoPago,
+      total
+    };
+
+    const res = await fetch("/admin/compras/registrar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (res.ok) {
+      alert("✅ Compra registrada correctamente");
+      window.location.href = "/admin";
+    } else {
+      alert("❌ Error al registrar la compra");
+    }
+  });
+
+</script>
+
+</body>
+</html>

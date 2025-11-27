@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VetCare · Dashboard</title>
+
+  <!-- Fuente Poppins (misma del login) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos del Dashboard -->
+  <link rel="stylesheet" href="/css/style.css" />
+
+</head>
+
+<body class="page-dashboard">
+  <!-- HEADER SUPERIOR -->
+<header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard" aria-label="Inicio">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+        <button class="user__btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+          <%= userName %>
+          <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <nav class="user__menu" id="userMenu" aria-label="Menú de usuario">
+                    <a href="/perfil">Mi perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- BLOQUE CENTRAL -->
+  <section class="dash-header">
+    <h1 class="dash-title">Tu mascota, nuestra prioridad.</h1>
+    <p class="dash-subtitle">
+      Accede a los servicios principales de VetCare desde un solo lugar.
+    </p>
+  </section>
+
+  <!-- TARJETAS PRINCIPALES -->
+  <section class="dash-grid">
+    <!-- CARD 1 -->
+    <div class="dash-card">
+      <h2 class="dash-card__title">Explorar el Catálogo</h2>
+      <div class="dash-card__media">
+        <img src="/img/dashboard1.jpg" alt="Catálogo de productos">
+      </div>
+      <a class="btn btn--primary dash-card__btn" href="/catalogo">Catálogo</a>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="dash-card">
+      <h2 class="dash-card__title">Agendar una cita</h2>
+      <div class="dash-card__media">
+        <img src="/img/dashboard2.jpg" alt="Agendar cita veterinaria">
+      </div>
+      <a class="btn btn--primary dash-card__btn" href="/cita">Cita</a>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="dash-card">
+      <h2 class="dash-card__title">Mi perfil</h2>
+      <div class="dash-card__media">
+        <img src="/img/dashboard3.jpg" alt="Perfil del usuario">
+      </div>
+      <a class="btn btn--primary dash-card__btn" href="/perfil">Perfil</a>
+    </div>
+  </section>
+</body>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const user = document.querySelector(".user");
+    const btn = document.querySelector(".user__btn");
+
+    btn.addEventListener("click", () => {
+      user.classList.toggle("open");
+    });
+
+    // Cerrar cuando se haga click fuera
+    document.addEventListener("click", (e) => {
+      if (!user.contains(e.target)) {
+        user.classList.remove("open");
+      }
+    });
+  });
+</script>
+
+</html>

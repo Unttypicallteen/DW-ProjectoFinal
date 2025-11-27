@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catálogo · NOVAPET</title>
+
+  <link rel="stylesheet" href="/css/estilo.css" />
+</head>
+
+<body class="page-dashboard">
+
+  <!-- Header -->
+  <header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+
+        <button class="user__btn" id="userMenuBtn">
+          <%= userName %>
+          <svg width="14" height="14"><path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+
+        <nav class="user__menu" id="userMenu">
+          <a href="/perfil">Mi perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="catalog">
+    <h1 class="catalog__title">Bienvenido a nuestro catálogo</h1>
+
+    <!-- Buscador + Tabs -->
+    <div class="catalog__toolbar">
+      <div class="catalog__search">
+        <input id="q" type="search" placeholder="Search" />
+        <span class="catalog__search-icon">🔍</span>
+      </div>
+
+      <div class="catalog__tabs">
+        <% categories.forEach(cat => { %>
+          <button class="catalog__tab <%= activeCategory===cat ? 'is-active' : '' %>"
+                  data-cat="<%= cat %>">
+            <%= cat === "perros" ? "Perros" :
+                cat === "gatos" ? "Gatos" :
+                "Otros Animales" %>
+          </button>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Grid + Filtros -->
+    <section class="catalog__layout">
+
+      <!-- FILTROS A LA DERECHA -->
+      <aside class="catalog__filters">
+
+        <div class="filter__group">
+          <label class="filter__label">Keywords</label>
+          <select id="grade" class="filter__select">
+            <option value="">Todos</option>
+            <option value="concentrado">Concentrado</option>
+            <option value="premium">Premium</option>
+            <option value="otros">Juguetes / Otros</option>
+          </select>
+        </div>
+
+        <div class="filter__group">
+          <label class="filter__label">Edad</label>
+          <label class="filter__check">
+            <input type="radio" name="age" value="" checked> Todos
+          </label>
+          <label class="filter__check">
+            <input type="radio" name="age" value="adulto"> Adulto
+          </label>
+          <label class="filter__check">
+            <input type="radio" name="age" value="cachorro"> Cachorro
+          </label>
+        </div>
+
+        <div class="filter__group">
+          <label class="filter__label">Precio máx.</label>
+          <div class="filter__range">
+            <span>$0</span>
+            <input id="price" type="range"
+                   min="0" max="300000" step="10000" value="300000">
+            <span>$300k</span>
+          </div>
+          <div class="filter__hint">
+            Hasta: <strong id="priceVal">$300.000</strong>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- GRID DE PRODUCTOS (IZQUIERDA) -->
+      <div class="catalog__grid" id="grid">
+        <% products.forEach(p => { %>
+        <article class="p"
+          data-cat="<%= p.category %>"
+          data-age="<%= p.age %>"
+          data-grade="<%= p.grade %>"
+          data-price="<%= p.price %>"
+          data-name="<%= p.name.toLowerCase() %>">
+
+          <div class="p__img">
+            <img src="<%= p.img %>" alt="<%= p.name %>">
+          </div>
+
+          <div class="p__title"><%= p.name %></div>
+          <div class="p__price">$<%= p.price.toLocaleString('es-CO') %></div>
+
+          <!-- STOCK DEL PRODUCTO -->
+          <div class="p__stock">
+            Disponibles: <strong><%= p.stock %></strong>
+          </div>
+
+          <form class="p__actions" action="/catalogo/reservar" method="post">
+            <input type="hidden" name="productId" value="<%= p._id %>">
+
+            <select name="qty" class="p__qty">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+
+            <button class="btn btn--primary p__cta"
+                    type="submit"
+                    <%= p.stock <= 0 ? 'disabled style="opacity:.5;cursor:not-allowed;"' : '' %>>
+              <%= p.stock <= 0 ? "Sin stock" : "Reservar Producto" %>
+            </button>
+          </form>
+
+        </article>
+        <% }) %>
+      </div>
+
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    /* ===============================
+       MENÚ USUARIO
+    ================================ */
+    (function () {
+      const btn = document.getElementById("userMenuBtn");
+      const user = btn.closest(".user");
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        user.classList.toggle("open");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!user.contains(e.target)) user.classList.remove("open");
+      });
+    })();
+
+    /* ===============================
+       FILTROS DEL CATÁLOGO
+    ================================ */
+    (function () {
+      const grid = document.getElementById("grid");
+      const tabs = document.querySelectorAll(".catalog__tab");
+      const q = document.getElementById("q");
+      const grade = document.getElementById("grade");
+      const price = document.getElementById("price");
+      const priceVal = document.getElementById("priceVal");
+      const ages = document.querySelectorAll('input[name="age"]');
+
+      let state = {
+        cat: document.querySelector(".catalog__tab.is-active")?.dataset.cat || "",
+        q: "",
+        grade: "",
+        age: "",
+        price: +price.value,
+      };
+
+      const apply = () => {
+        [...grid.children].forEach((card) => {
+          const ok =
+            (!state.cat || card.dataset.cat === state.cat) &&
+            (!state.age || card.dataset.age === state.age) &&
+            (!state.grade || card.dataset.grade === state.grade) &&
+            +card.dataset.price <= state.price &&
+            (!state.q || card.dataset.name.includes(state.q));
+
+          card.style.display = ok ? "" : "none";
+        });
+      };
+
+tabs.forEach((t) =>
+  t.addEventListener("click", () => {
+    const cat = t.dataset.cat;
+    window.location.href = `/catalogo?cat=${cat}`;
+  })
+);
+
+
+      q.addEventListener("input", () => {
+        state.q = q.value.toLowerCase();
+        apply();
+      });
+
+      grade.addEventListener("change", () => {
+        state.grade = grade.value;
+        apply();
+      });
+
+      ages.forEach((r) =>
+        r.addEventListener("change", () => {
+          state.age = r.value;
+          apply();
+        })
+      );
+
+      price.addEventListener("input", () => {
+        state.price = +price.value;
+        priceVal.textContent = `$${state.price.toLocaleString("es-CO")}`;
+        apply();
+      });
+
+      apply();
+    })();
+
+    /* ===============================
+       TOAST
+    ================================ */
+    function showToast(msg, ok = true) {
+      const t = document.getElementById("toast");
+      if (!t) return;
+      t.textContent = msg;
+      t.style.borderColor = ok ? "#A8E2B5" : "#F5B7B1";
+      t.style.background = ok ? "#E7F8ED" : "#FDEDEC";
+      t.style.color = ok ? "#276738" : "#922B21";
+      t.classList.add("toast--show");
+      setTimeout(() => t.classList.remove("toast--show"), 2800);
+    }
+/* ===============================
+   HANDLERS DE RESERVAS
+================================ */
+(function attachReserveHandlers() {
+  if (window.__reserveHandlersAttached) return;
+  window.__reserveHandlersAttached = true;
+
+  document.querySelectorAll(".p__actions").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fd = new FormData(form);
+      const qty = parseInt(fd.get("qty"));
+      const card = form.closest(".p");
+      const name = card.querySelector(".p__title").textContent.trim();
+
+      try {
+        const resp = await fetch("/catalogo/reservar", {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+          body: new URLSearchParams(fd),
+        });
+
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+
+        // Mostrar mensaje
+        showToast(data.message || `Reservaste ${qty} unidad(es) de "${name}"`);
+
+        /* ===============================
+           🔥 ACTUALIZAR STOCK EN PANTALLA
+        ================================= */
+        
+        const stockElem = card.querySelector(".p__stock strong");
+        let stockActual = parseInt(stockElem.textContent);
+
+        // Restar las unidades reservadas
+        stockActual -= qty;
+
+        // Actualizar el DOM
+        stockElem.textContent = stockActual;
+
+        // Si llega a 0 -> bloquear botón
+        const btn = form.querySelector("button");
+        if (stockActual <= 0) {
+          btn.textContent = "Sin stock";
+          btn.disabled = true;
+          btn.style.opacity = ".5";
+          btn.style.cursor = "not-allowed";
+        }
+
+      } catch (err) {
+        console.error(err);
+        showToast("No se pudo completar la reserva.", false);
+      }
+    });
+  });
+})();
+
+  </script>
+
+</body>
+</html>

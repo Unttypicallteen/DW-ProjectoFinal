@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <title>Servicios · NOVAPET</title>
+  <link rel="stylesheet" href="/css/estilo.css" />
+</head>
+<body class="page-dashboard">
+  <!-- Header -->
+  <header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard" aria-label="Inicio">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+        <button class="user__btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+          <%= userName %>
+          <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <nav class="user__menu" id="userMenu" aria-label="Menú de usuario">
+          <a href="/perfil">Ver perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="dash-sep"></div>
+
+  <!-- Contenido -->
+  <main class="servicios">
+    <h1 class="servicios__title">Tu mascota, nuestra prioridad</h1>
+
+    <section class="servicios__list">
+  <!-- Vacunación -->
+  <article class="servicio servicio--vacunas">
+    <div class="servicio__media">
+      <img src="/img/servicios/vacuna.png" alt="Vacunación" />
+    </div>
+    <div class="servicio__body">
+      <h3>Vacunación</h3>
+      <p>Protege a tu mascota con su esquema de vacunas al día. Prevenir es la mejor forma de cuidar.</p>
+      <a href="/cita/vacuna" class="btn btn--primary servicio__cta">Agendar vacuna</a>
+    </div>
+  </article>
+
+  <!-- Grooming -->
+  <article class="servicio servicio--grooming">
+    <div class="servicio__media">
+      <img src="/img/servicios/grooming.png" alt="Grooming" />
+    </div>
+    <div class="servicio__body">
+      <h3>Grooming</h3>
+      <p>Baño, corte y limpieza con cariño. Mantén a tu mascota limpia, feliz y con un look increíble.</p>
+      <a href="/cita/grooming" class="btn btn--primary servicio__cta">Agendar grooming</a>
+    </div>
+  </article>
+
+  <!-- Consulta médica -->
+  <article class="servicio servicio--consulta">
+    <div class="servicio__media">
+      <img src="/img/servicios/consulta.png" alt="Consulta médica" />
+    </div>
+    <div class="servicio__body">
+      <h3>Consulta Médica / Cita Clínica</h3>
+      <p>Atención profesional para diagnóstico, revisión y cuidado general. Agenda tu cita y dale la salud que merece.</p>
+      <a href="/cita/medica" class="btn btn--primary servicio__cta">Reservar cita</a>
+    </div>
+  </article>
+</section>
+
+  </main>
+
+  <script>
+    // Reutilizamos el script del menú usuario
+    (function () {
+      const btn  = document.getElementById('userMenuBtn');
+      const menu = document.getElementById('userMenu');
+      const user = btn?.closest('.user');
+      if (!btn || !menu || !user) return;
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = user.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      menu.addEventListener('click', (e) => e.stopPropagation());
+      document.addEventListener('click', () => { user.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { user.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }});
+    })();
+  </script>
+</body>
+</html>

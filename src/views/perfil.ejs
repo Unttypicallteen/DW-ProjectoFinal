@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mi perfil · NOVAPET</title>
+  <link rel="stylesheet" href="/css/estilo.css" />
+</head>
+<body class="page-dashboard">
+  <!-- Header reutilizado -->
+<header class="dash-top">
+    <div class="dash-top__inner">
+      <a class="dash-brand" href="/dashboard" aria-label="Inicio">
+        <img src="/img/logo.jpg" alt="NOVAPET" />
+      </a>
+      <div class="user">
+        <span class="user__hello">Hola,</span>
+        <button class="user__btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+          <%= userName %>
+          <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <nav class="user__menu" id="userMenu" aria-label="Menú de usuario">
+                    <a href="/perfil">Mi perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="perfil">
+    <h1 class="perfil__title">Tu información en un solo lugar</h1>
+
+    <section class="perfil__list">
+      <!-- Datos personales -->
+      <article class="perfil__card perfil__card--datos">
+        <div class="perfil__media">
+          <img src="/img/perfil/datos.jpg" alt="Datos personales">
+        </div>
+        <div class="perfil__body">
+          <h3>Datos personales</h3>
+          <p>Tu información a tu disposición en cualquier momento. En un futuro también la de tu(s) mascota(s).</p>
+          <a href="/perfil/info" class="btn btn--primary">Ver info</a>
+        </div>
+      </article>
+
+
+      <!-- Reservas -->
+      <article class="perfil__card perfil__card--citas">
+        <div class="perfil__media">
+          <img src="/img/perfil/citas.jpg" alt="Consulta citas">
+        </div>
+        <div class="perfil__body">
+          <h3>Consulta tus reservas o citas</h3>
+          <p>Revisa, modifica o cancela tus próximas citas fácilmente. Mantén el control del tiempo y cuidado de tu mascota.</p>
+          <a href="/perfil/reservas" class="btn btn--primary">Consulta tus citas</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    // menú usuario (reutilizado)
+    (function () {
+      const btn  = document.getElementById('userMenuBtn');
+      const menu = document.getElementById('userMenu');
+      const user = btn?.closest('.user');
+      if (!btn || !menu || !user) return;
+      btn.addEventListener('click', e => { e.stopPropagation(); const open=user.classList.toggle('open'); btn.setAttribute('aria-expanded', open) });
+      document.addEventListener('click', () => user.classList.remove('open'));
+    })();
+  </script>
+</body>
+</html>
